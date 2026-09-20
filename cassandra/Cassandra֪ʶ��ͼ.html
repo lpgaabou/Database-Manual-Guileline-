@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cassandra 分布式数据库 · 知识地图</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2312948a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%2312948a'/%3E%3C/svg%3E">
+<style>
+:root{
+  --teal:#12948a; --teal-d:#0c6b64; --teal-l:#e3f3f1;
+  --slate:#1f2d3d; --slate-2:#334455; --bg:#eef1f3; --panel:#ffffff;
+  --line:#d9e0e4; --txt:#23303a; --txt-2:#556573; --amber:#b7791f; --amber-l:#fdf3e0;
+  --red:#c0392b; --red-l:#fdecea; --code-bg:#1f2d3d; --code-txt:#e6eef2;
+  --shadow:0 2px 10px rgba(31,45,61,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.65;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#b9c4cb;border-radius:5px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ===== 顶栏 ===== */
+header{height:58px;background:var(--slate);color:#fff;display:flex;align-items:center;gap:16px;padding:0 18px;box-shadow:var(--shadow);z-index:30;position:relative}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;white-space:nowrap}
+.logo svg{flex:none}
+.logo small{font-weight:400;color:#9fb2c0;font-size:12px;display:block;letter-spacing:.5px}
+.search-wrap{position:relative;flex:1;max-width:520px}
+.search-wrap input{width:100%;height:34px;border-radius:17px;border:1px solid #41556a;background:#2b3c4e;color:#fff;padding:0 38px 0 16px;font-size:13px;outline:none}
+.search-wrap input::placeholder{color:#8ba0b2}
+.search-wrap input:focus{border-color:var(--teal);background:#31455a}
+.search-wrap .sicon{position:absolute;right:12px;top:8px;color:#8ba0b2}
+.search-meta{position:absolute;top:38px;left:16px;font-size:12px;color:var(--amber);background:var(--amber-l);padding:2px 10px;border-radius:0 0 8px 8px;display:none}
+.view-switch{display:flex;background:#2b3c4e;border-radius:8px;overflow:hidden;margin-left:auto}
+.view-switch button{border:0;background:transparent;color:#9fb2c0;padding:7px 14px;font-size:13px}
+.view-switch button.active{background:var(--teal);color:#fff}
+.tools{display:flex;gap:8px}
+.tools button{border:1px solid #41556a;background:transparent;color:#c6d3de;border-radius:7px;padding:6px 10px;font-size:12px}
+.tools button:hover{border-color:var(--teal);color:#fff}
+
+/* ===== 快捷 chips ===== */
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+.chips span.lbl{color:var(--txt-2);font-size:12px}
+.chip{border:1px solid var(--line);background:#f6f9f9;color:var(--slate-2);border-radius:13px;padding:2px 12px;font-size:12px;transition:.15s}
+.chip:hover{background:var(--teal-l);border-color:var(--teal);color:var(--teal-d)}
+
+/* ===== 主体布局 ===== */
+main{display:flex;height:calc(100% - 58px - 39px)}
+#treePane{width:390px;flex:none;background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:10px 6px 40px 10px}
+#detailPane{flex:1;overflow:auto;padding:26px 34px 80px}
+body.mind #treePane{width:100%;border-right:0}
+body.mind #detailPane{display:none}
+
+/* ===== 树 ===== */
+.tree ul{list-style:none}
+.tree li{position:relative}
+.node{display:flex;align-items:flex-start;gap:6px;padding:3px 6px;border-radius:7px;cursor:pointer;user-select:none}
+.node:hover{background:#f0f5f5}
+.node.active{background:var(--teal-l);box-shadow:inset 3px 0 0 var(--teal)}
+.twist{width:16px;height:22px;flex:none;display:flex;align-items:center;justify-content:center;color:#8aa0ad;font-size:10px;transition:transform .15s;margin-top:1px}
+.twist.empty{visibility:hidden}
+li.collapsed > ul{display:none}
+li.collapsed > .node .twist{transform:rotate(-90deg)}
+.node-title{font-size:13.5px;line-height:22px;word-break:break-all}
+.lvl-0 > .node .node-title{font-size:15px;font-weight:700;color:var(--teal-d)}
+.lvl-1 > .node .node-title{font-weight:700;color:var(--slate)}
+.lvl-2 > .node .node-title{font-weight:600}
+.src{font-size:10px;color:#9aa9b3;margin-left:5px;font-weight:400}
+.node.hidden{display:none}
+mark{background:#ffe27a;color:#5c4400;border-radius:2px;padding:0 1px}
+.node.dim{opacity:.32}
+/* 脑图模式连接线 */
+body.mind .tree ul ul{margin-left:20px;padding-left:14px;border-left:1px dashed #c3d0d6}
+body.mind .lvl-0 > ul{border-left:0;margin-left:0;padding-left:0}
+body.mind .node{padding:5px 8px}
+body.mind .node-title{background:#fff;border:1px solid var(--line);border-radius:8px;padding:1px 10px;box-shadow:0 1px 3px rgba(31,45,61,.06)}
+body.mind .lvl-1 > .node .node-title{background:var(--teal);color:#fff;border-color:var(--teal-d)}
+body.mind .lvl-2 > .node .node-title{background:var(--teal-l);border-color:#bfe0dc;color:var(--teal-d);font-weight:600}
+body.mind .lvl-0 > .node .node-title{background:var(--slate);color:#fff;border-color:var(--slate);font-size:16px}
+
+/* ===== 详情面板 ===== */
+.crumb{font-size:12px;color:var(--txt-2);margin-bottom:10px}
+.crumb b{color:var(--teal-d);font-weight:600}
+.dtitle{font-size:24px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dtitle .badge{font-size:11px;font-weight:400;background:var(--teal-l);color:var(--teal-d);padding:2px 10px;border-radius:11px}
+.dcontent{margin-top:14px}
+.dcontent p{margin:8px 0;color:var(--slate-2)}
+.dcontent ul{margin:8px 0 8px 4px;list-style:none}
+.dcontent ul li{position:relative;padding-left:18px;margin:5px 0;color:var(--slate-2)}
+.dcontent ul li::before{content:"";position:absolute;left:3px;top:10px;width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.dcontent ul ul{margin:2px 0}
+.dcontent b,.dcontent strong{color:var(--txt)}
+.dcontent code{background:#e9eef1;color:var(--teal-d);padding:1px 6px;border-radius:4px;font-family:Consolas,"Courier New",monospace;font-size:12.5px}
+h4.block-h{font-size:14px;color:var(--slate);margin:18px 0 6px;padding-left:9px;border-left:4px solid var(--teal)}
+.tip{background:var(--amber-l);border-left:4px solid var(--amber);border-radius:0 8px 8px 0;padding:9px 14px;margin:12px 0;color:#6b4e16;font-size:13px}
+.warn{background:var(--red-l);border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:9px 14px;margin:12px 0;color:#8e2f24;font-size:13px}
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.8px;background:#fff;box-shadow:var(--shadow);border-radius:8px;overflow:hidden;table-layout:fixed}
+th{background:var(--slate);color:#fff;font-weight:600;padding:8px 10px;text-align:left;vertical-align:top}
+td{padding:7px 10px;border-top:1px solid var(--line);vertical-align:top;color:var(--slate-2);word-wrap:break-word}
+tr:nth-child(even) td{background:#f7faf9}
+.codewrap{position:relative;margin:10px 0 16px;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.codewrap .codebar{background:#16242f;color:#8fb0bf;font-size:11.5px;padding:5px 12px;display:flex;justify-content:space-between;align-items:center}
+.copybtn{border:1px solid #3a5366;background:transparent;color:#9fc0cf;border-radius:5px;font-size:11px;padding:1px 9px}
+.copybtn:hover{background:var(--teal);border-color:var(--teal);color:#fff}
+pre{background:var(--code-bg);color:var(--code-txt);padding:12px 14px;overflow-x:auto;font-family:Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.6;white-space:pre}
+.navbtns{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px solid var(--line)}
+.navbtns button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 16px;font-size:13px;color:var(--slate-2)}
+.navbtns button:hover{border-color:var(--teal);color:var(--teal-d)}
+#noSel{color:var(--txt-2);text-align:center;margin-top:14vh}
+#noSel .big{font-size:46px;margin-bottom:14px;opacity:.35}
+.hidden2{display:none}
+@media (max-width:900px){
+  #treePane{width:300px}
+  #detailPane{padding:18px}
+  .tools{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="none" stroke="#12948a" stroke-width="2.4"/><circle cx="16" cy="16" r="4.5" fill="#12948a"/><circle cx="16" cy="4.5" r="2.4" fill="#7fd0c8"/><circle cx="26" cy="21.8" r="2.4" fill="#7fd0c8"/><circle cx="6" cy="21.8" r="2.4" fill="#7fd0c8"/></svg>
+    <div>Cassandra 知识地图<small>架构基础 · 集群实战 · 管理入门</small></div>
+  </div>
+  <div class="search-wrap">
+    <input id="searchInput" type="text" placeholder="搜索知识点 / 命令 / 参数，如 nodetool、Gossip、数据类型…" autocomplete="off">
+    <svg class="sicon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <div class="search-meta" id="searchMeta"></div>
+  </div>
+  <div class="view-switch">
+    <button id="btnOutline" class="active">大纲视图</button>
+    <button id="btnMind">脑图视图</button>
+  </div>
+  <div class="tools">
+    <button id="btnExpand">全部展开</button>
+    <button id="btnCollapse">全部折叠</button>
+  </div>
+</header>
+
+<div class="chips">
+  <span class="lbl">高频直达：</span>
+  <button class="chip" data-k="端口">集群端口</button>
+  <button class="chip" data-k="Gossip">Gossip</button>
+  <button class="chip" data-k="vnode">虚拟节点</button>
+  <button class="chip" data-k="写流程">写入流程</button>
+  <button class="chip" data-k="读流程">读取流程</button>
+  <button class="chip" data-k="数据类型">数据类型</button>
+  <button class="chip" data-k="cassandra.yaml">yaml 配置</button>
+  <button class="chip" data-k="G1">JVM/G1 调优</button>
+  <button class="chip" data-k="nodetool">nodetool 命令</button>
+  <button class="chip" data-k="增加节点">扩容加节点</button>
+  <button class="chip" data-k="跨数据中心">跨数据中心</button>
+  <button class="chip" data-k="权限">用户权限</button>
+  <button class="chip" data-k="snapshot">备份恢复</button>
+</div>
+
+<main>
+  <nav id="treePane"><div class="tree" id="tree"></div></nav>
+  <section id="detailPane">
+    <div id="noSel">
+      <div class="big">◎</div>
+      <p>点击左侧任意知识点查看详情</p>
+      <p style="font-size:12px;margin-top:8px">顶部搜索框可秒级定位全部知识点、命令与参数（快捷键 /）</p>
+    </div>
+    <div id="detail" class="hidden2"></div>
+  </section>
+</main>
+
+<script>
+/* ============ 知识数据（见下方 DATA） ============ */
+var DATA=[
+{
+ id:'c1',t:'第一章 Cassandra 架构与基础知识',src:'课件 P5-P43',
+ children:[
+ {id:'c1-0',t:'课程内容地图（三大篇章）',src:'P2-P3',_search:'教程大纲 章节',
+  b:[
+   {ul:[
+    {t:'**第一篇 架构与基础知识**',c:['数据库系统分类、Cassandra 介绍、典型行业与业务','分布式系统架构、节点内部结构、数据存储模型']},
+    {t:'**第二篇 分布式集群实战**',c:['集群环境规划、操作系统环境准备、软件安装','多节点集群配置、服务启动停止与验证','节点增加与删除、多节点跨数据中心配置']},
+    {t:'**第三篇 分布式数据库管理入门**',c:['CQL 语言基础、数据类型、可视化工具','数据库操作与使用、日常维护命令']}
+   ]},
+   {tip:'本知识地图第一篇依据课件 PPT 整理；第二、三篇补充了《cassandra 终章》实操笔记中的全部命令与参数。'}
+  ]},
+ {id:'c1-1',t:'数据库系统分类',src:'P6',_search:'SQL NoSQL NewSQL 关系式 非关系式 分类',
+  b:[
+   {ul:[
+    {t:'**SQL 关系式数据库**：Oracle、MySQL、DB2、SQLServer、PostgreSQL'},
+    {t:'**NoSQL 非关系式数据库**：Memcached、Redis、MongoDB、**Cassandra**'},
+    {t:'**NewSQL 数据库**：兼顾 NoSQL 高扩展与 SQL 关系模型的新一代数据库'}
+   ]}
+  ]},
+ {id:'c1-2',t:'SQL 与 NoSQL 的区别',src:'P7',_search:'CAP ACID 事务 结构化 模式 schema 对比',
+  b:[
+   {table:{h:['维度','SQL（关系型）','NoSQL'],w:['22%','39%','39%'],rows:[
+    ['数据','高度组织化结构化数据','代表着不仅仅是 SQL'],
+    ['查询语言','结构化查询语言 SQL','没有声明性查询语言'],
+    ['存储方式','数据和关系都存储在单独的表中','键-值对存储、列存储、文档存储、图形数据库'],
+    ['数据定义','数据操纵语言、数据定义语言','没有预定义的模式'],
+    ['一致性','严格的一致性（ACID）','最终一致性，而非 ACID 属性'],
+    ['事务','基础事务','不支持/弱事务'],
+    ['理论基础','—','CAP 定理（一致性、可用性、容错性，3 个不可兼得）'],
+    ['扩展能力','纵向扩展为主','高性能、高可用性和可伸缩性，易横向扩展'],
+    ['适用数据','结构化、可预知的数据','非结构化和不可预知的数据']
+   ]}}
+  ]},
+ {id:'c1-3',t:'NoSQL 数据库四大分类',src:'P8-P9',_search:'列存储 文档存储 key-value 图存储 HBase MongoDB Redis MemcacheDB',
+  b:[
+   {ul:[
+    {t:'**列存储**：HBase、Cassandra。按列存储数据，最大特点是方便存储结构化和半结构化数据、方便数据压缩，对针对某一列或某几列的查询有非常大的 IO 优势。'},
+    {t:'**文档存储**：MongoDB。一般用 JSON 格式存储，存储内容是文档型的。'},
+    {t:'**Key-Value 存储**：MemcacheDB、Redis。数据形式为 <key, value>，通过 key 可快速查询 value；存储不管 value 的格式，照单全收。'},
+    {t:'**图存储 / 对象存储 / XML 数据库**。'}
+   ]},
+   {h:'三款典型 NoSQL 产品对比（课件原表）'},
+   {table:{h:['产品','存储方式','典型应用','数据模型','优点','缺点'],w:['13%','14%','19%','18%','18%','18%'],rows:[
+    ['Cassandra','列存储数据库','分布式文件系统','以列模式存储，将同一列数据存在一起','查找速度快，可扩展性强，更容易进行分布式扩展','功能相对局限'],
+    ['Redis','键值（key-value）','内容缓存，处理大量数据的高访问负载','一系列键值对','快速查询','存储的数据缺少结构化'],
+    ['MongoDB','文档型数据库','Web 应用','一系列键值对','数据结构要求不严格','查询性能不高，缺乏统一查询语法']
+   ]}}
+  ]},
+ {id:'c1-4',t:'Cassandra 是什么',src:'P10-P14',_search:'定义 开源 无中心 弹性可扩展 高可用 容错 一致性可调 面向列 CQL Apache Facebook Dynamo BigTable Java ScyllaDB DataStax DB-Engines 排名',
+  b:[
+   {ul:[
+    'Cassandra 是一个**开源的、分布式、无中心、弹性可扩展、高可用、容错、一致性可调、面向列**的分布式 NoSQL 数据库系统。',
+    '最初由 **Facebook 开发**，以 Amazon 专有的完全分布式 **Dynamo**（分布式 Key-Value 存储系统）为基础，结合了 Google **BigTable** 基于列族的数据模型；**2008 年开源**，转而由 Amazon Dynamite 团队成员维护，后成为 **Apache 基金会**旗下顶级孵化项目。',
+    '无中心化、自动复制、多数据中心复制 → 具备容错能力、**没有单点故障**；用于大量商用服务器上的海量数据存储与分布式数据扩展。',
+    '可支持 **PB 级**信息处理，负载可达**每秒数百万条**并发操作，适合多云及混合云架构处理巨量数据。',
+    '拥有用户友好、类似 SQL 的查询语言 **CQL（Cassandra Query Language）**。',
+    '源码由 **Java** 编写，号称是**最快的列存储 NoSQL**。',
+    '**ScyllaDB**：用 C++ 重写 Cassandra，号称十倍性能；**DataStax**：基于 Cassandra 的商业服务公司，估值达数十亿美元。',
+    '在 NoSQL **宽表领域（字段比较多的数据库表）Cassandra 排名第一**；国内阿里云、腾讯云、华为云等平台都有 Cassandra 版本的数据库产品。'
+   ]},
+   {h:'技术血统'},
+   {p:'Google Bigtable（2005）+ Amazon Dynamo（2007）→ Facebook 开源（2008）→ Apache（2009）→ Cassandra 1.0（2010）。'}
+  ]},
+ {id:'c1-5',t:'发展历程（里程碑时间轴）',src:'P15',_search:'版本 1.0 2.0 3.0 4.0 历史 时间',
+  b:[
+   {table:{h:['时间','里程碑'],w:['22%','78%'],rows:[
+    ['2008 年 7 月','Facebook 开源 Cassandra'],
+    ['2009 年','成为 Apache 基金会旗下项目（孵化器）'],
+    ['2011 年','Cassandra 1.0 版本发布'],
+    ['2013 年','Cassandra 2.0 版本发布'],
+    ['2015 年','Cassandra 3.0 版本发布'],
+    ['2019 年','Cassandra 4.0 版本发布（本教程使用 4.0.x）']
+   ]},
+   tip:'官方文档：https://cassandra.apache.org/doc/latest/'}
+  ]},
+ {id:'c1-6',t:'典型应用行业与业务场景',src:'P16-P19',_search:'行业 互联网 电商 游戏 短视频 社交 金融风控 车联网 智能制造 日志 订单 购物车 用户画像 风控 推荐 计费 客户案例 Apple eBay 思科 360 饿了么',
+  b:[
+   {h:'典型应用行业'},
+   {ul:[
+    '**互联网**：电商、网站、在线教育、游戏、短视频、社交 APP、金融风控',
+    '**汽车与交通**：车联网、车载终端、视频监控',
+    '**智能制造**：智能家居、定位设备、手机终端、智能手表'
+   ]},
+   {h:'行业应用重要特点（选型依据）'},
+   {ul:[
+    '更适合**多写**、做一些**简单查询**，**不适合做数据分析统计**（可与 Spark 组合：多数据中心把 OLTP 与数据分析分开，一个 DC 处理事务、一个 DC 结合 Spark 做分析）',
+    '**高吞吐（高并发）、海量数据、在线能力要求高、跨机房容灾**',
+    '**无 ACID 事务、无多表关联、无 join 分析、无多层嵌套 JSON、数据很少更新**',
+    '使用门槛低、开发简单、稳定更容易维护，对初创公司、新兴应用场景友好'
+   ]},
+   {h:'典型应用业务'},
+   {ul:[
+    '**日志记录**：日志/浏览记录、历史订单/账单、购物车、报表、商品详情、广告素材',
+    '**业务元数据**：用户信息、资料标签、存放路径',
+    '**设备信息**：设备信息、轨迹信息、位置信息、监控日志、时序数据',
+    '**网络社交**：聊天消息、评论点赞、帖子文章、新闻推送',
+    '气象服务历史、物联网状态和事件历史、汽车物联网数据、电子邮件',
+    '跟踪几乎任何事情：订单状态、包裹信息',
+    '**风控、用户画像、推荐、计费系统**'
+   ]},
+   {h:'行业客户（全球 1500+ 公司）'},
+   {ul:[
+    '阿里云、华为云（云数据库 Cassandra）',
+    '奇虎 360（1500 机器+）、饿了么（用户画像、订单）、百度、网龙、多家银行金融',
+    '**Apple（16 万个节点，共 10PB+）**',
+    'eBay（日志采集、时序、推荐、风控）',
+    '思科（物联网、日志、订单、配置）',
+    'HP、IBM、Symantec、DELL、Adobe、Facebook 等'
+   ]}
+  ]},
+ {id:'c1-7',t:'Cassandra 与 HBase 对比',src:'P20',_search:'HBase 对比 CAP AP CP HDFS 区别 选型',
+  b:[
+   {table:{h:['产品','存储','CAP 定理','使用环境','性能','行业应用'],w:['12%','13%','20%','21%','19%','15%'],rows:[
+    ['Cassandra','列存储数据库','**AP**（可用性 + 分区容错性，强调不存在单点故障的可用性）','独立使用，环境非常简单，中小企业非常容易上手','读写直接对磁盘，查找速度快，可扩展性强，更容易分布式扩展','国外火、国内一般，未来可期；国内市场推广问题，偏运维团队'],
+    ['HBase','列存储数据库','**CP**（一致性 + 分区容错性，强调强一致性）','基于 Hadoop 平台、使用 HDFS，环境非常复杂，适合有实力的大公司','读写性能依赖于 HDFS','国内火、国外一般；国内 Hadoop 流行带动 HBase，偏开发团队']
+   ]}},
+   {tip:'两者都是列存储 NoSQL，核心差异在 CAP 取舍与依赖环境：Cassandra 开箱即用、去中心化；HBase 强一致但依赖 Hadoop/HDFS 全家桶。'}
+  ]},
+ {id:'c1-8',t:'分布式系统架构总览',src:'P21-P30',_search:'架构 Node Rack Data Center 节点 机架 数据中心 seed 种子节点 Master 对等 容量 PB 复制因子',
+  children:[
+  {id:'c1-8-1',t:'集群组成：节点 / 机架 / 数据中心',src:'P21-P24',_search:'Node Rack DC 拓扑 fgedudata fgnode 华南 华北',
+   b:[
+    {ul:[
+     '**节点（Node）**：运行 Cassandra 实例的服务器（物理主机、虚拟主机、云、Docker 容器）',
+     '**机架（Rack）**：一组相互靠近的 Cassandra 节点（一个物理机架 / 一个可用区域的节点集合）',
+     '**数据中心（Data Center）**：逻辑机架的集合'
+    ]},
+    {h:'拓扑关键事实'},
+    {ul:[
+     'Cassandra 实例由 **1~3 个 DC** 组成，每个 DC 由 **1 到 500 个节点**组成，每个节点部署一个 cassandra 进程',
+     '**没有 Master 节点或 Proxy 节点，所有节点对等**；逻辑上系统会在每个 DC 中选择 **2 个节点作为 seed 种子节点**，对系统压力不大，无需单独部署进程',
+     '客户端与服务端**每个节点都可连接**，保障高性能',
+     '不同数据中心可以设定不同的副本数，既可跨数据中心容灾，也可做备份或离线分析',
+     '一个节点存储空间可为 **160GB ~ 16TB**；一个 DC 500 个节点大约 **8PB** 左右',
+     '集群基于**复制因子**进行集群复制，达到数据冗余'
+    ]},
+    {p:'Cassandra 通常跨多个数据中心存储数据副本以确保高可用，同时将查询路由到同一数据中心的其他节点以实现最优性能。为此使用两个内部协议来管理基于集群拓扑的数据路由：**Gossip 和 Snitches**。'},
+    {ul:[
+     '使用 **Gossip 协议**实现了无中心架构',
+     '使用 **Snitch 机制**实现节点感知以提高性能',
+     '使用**环结构和令牌机制**实现集群的动态扩容和数据分区'
+    ]}
+   ]},
+  {id:'c1-8-2',t:'Gossip 八卦协议',src:'P25',_search:'gossip 最终一致性 容错 节点状态 1秒 随机 路由',
+   b:[
+    {ul:[
+     'Gossip 是一个**带冗余的容错算法**，属于一种**最终一致性**算法',
+     'Cassandra 中的 Gossip 协议允许每个节点跟踪集群中其他节点的状态：**每 1 秒 1 次**，并**最多选择 3 个随机节点**发起 gossip 会话',
+     '节点之间相互交换其他节点的信息，使所有节点快速了解整个集群状态（如节点运行/关闭状态），从而实现集群路由请求的优化'
+    ]}
+   ]},
+  {id:'c1-8-3',t:'Snitches 告密者（拓扑感知）',src:'P26',_search:'snitch 告密者 邻近度 机架感知 读 写 故障 副本 路由 GossipingPropertyFileSnitch SimpleSnitch',
+   b:[
+    {ul:[
+     '通知每个节点与其他节点的**相对距离**，用于确定从哪些节点读取和写入',
+     '在节点出现故障或无法访问时，**以最优路径分发副本**，以最大限度提高可用性',
+     '课件配置使用 **GossipingPropertyFileSnitch**：通过 gossip 协议传达整个集群拓扑，每个节点在 `cassandra-rackdc.properties` 中定义自己所属的数据中心和机架信息，再通过 gossip 交换形成整体拓扑',
+     '**SimpleSnitch**：不理解网络拓扑，不知道机架和数据中心，不适合多数据中心部署'
+    ]}
+   ]},
+  {id:'c1-8-4',t:'环结构、令牌与虚拟节点（vnodes）',src:'P27-P28',_search:'token ring 令牌环 64位 散列 分区 vnode 虚拟节点 num_tokens 256 16 动态扩容 数据分区 16倍数',
+   b:[
+    {h:'环结构和令牌'},
+    {ul:[
+     'Cassandra 将集群管理的数据表示为**环（Ring）**，为环中每个节点分配一个或多个数据区间/范围，由一个**令牌（Token）**描述，确定数据在环中的位置',
+     '通过**散列函数为分区键计算令牌**，将数据分配给节点：把分区键令牌与各节点令牌值比较，识别拥有该数据范围的节点',
+     '令牌是用于标识每个分区的 **64 位整数 ID**'
+    ]},
+    {h:'虚拟节点 vnodes'},
+    {ul:[
+     '早期版本为每个节点静态分配一个令牌，需要自行计算令牌',
+     '**1.2 版本引入虚拟节点（vnodes）**：不是将单个令牌分配给节点，而是把令牌范围分解为多个较小范围，为每个物理节点分配**多个令牌**',
+     '默认情况下每个节点分配 **256 个**令牌（即包含 256 个虚拟节点）；自 **2.0 起默认启用**，Cassandra 自动处理集群中每个节点的令牌范围计算，与 `num_tokens` 值成比例',
+     '本教程配置 `num_tokens: 16`（即每节点 16 个虚拟节点，节点数建议为 16 的倍数以便数据均衡）'
+    ]},
+    {tip:'vnodes 带来的好处：新增/移除节点时数据自动再均衡，无需手工算令牌，热点更少，扩容更简单。'}
+   ]},
+  {id:'c1-8-5',t:'分区器 Partitioner 与布隆过滤器',src:'P29',_search:'partitioner 分区程序 Murmur3Partitioner 分区键 散列函数 Bloom Filter 布隆过滤器',
+   b:[
+    {ul:[
+     '**分区器（Partitioner）**确定数据在集群节点之间的分布方式',
+     'Cassandra 将数据存储在宽行或"分区"中，每行都有一个用于标识分区的**分区键**；分区器就是用于计算分区键令牌的**散列函数**，根据分区键令牌值，每行数据在环内分布',
+     '4.0 默认分区器：`org.apache.cassandra.dht.Murmur3Partitioner`'
+    ]},
+    {ul:[
+     '**布隆过滤器（Bloom Filter）**：快速但非确定性的算法，用于测试元素是否是集合的成员，是一种特殊的缓存',
+     '每次查询先访问 Bloom 过滤器，快速判断 SSTable 中**是否可能**存在该分区，避免无效磁盘 IO（可能误报"存在"，但绝不会漏报）'
+    ]}
+   ]},
+  {id:'c1-8-6',t:'复制策略与副本因子',src:'P30',_search:'复制策略 副本 replication factor 副本因子 N 第一副本 冗余 高可用',
+   b:[
+    {ul:[
+     '节点用作不同数据范围的**副本**；如果一个节点发生故障，其他副本可以响应该数据范围的查询',
+     'Cassandra 以对用户透明的方式跨节点复制数据',
+     '**复制因子（Replication Factor）**：集群中将接收相同数据副本的节点数；如复制因子为 3，则环中 3 个节点持有每行的副本',
+     '**第一个副本**始终是声明令牌落入范围的节点，副本的其余部分根据复制策略放置'
+    ]},
+    {tip:'生产环境复制因子建议 ≥ 3，以避免单点故障；副本数按数据中心分别配置（NetworkTopologyStrategy）。'}
+   ]}
+  ]},
+ {id:'c1-9',t:'节点内部结构与读写原理',src:'P31-P36',_search:'JVM 内存 磁盘 CommitLog Memtable SSTable Hints Key Cache Row Cache 写流程 读流程 协调器 Coordinator hinted handoff 提示移交 compaction 压缩',
+  children:[
+  {id:'c1-9-1',t:'节点内部结构总览（JVM + 磁盘）',src:'P31',_search:'Cassandra Daemon 结构图 组件',
+   b:[
+    {table:{h:['位置','组件','作用'],w:['16%','30%','54%'],rows:[
+    ['JVM 内存（Cassandra Daemon）','Memtables','内存表，写入先落内存，定期刷盘成 SSTable'],
+    ['JVM 内存','Key Caches','键缓存，默认开启'],
+    ['JVM 内存','Row Caches','行缓存，默认关闭'],
+    ['磁盘 Disk','Commit Logs','提交日志，写操作先记录，用于故障恢复'],
+    ['磁盘 Disk','SSTables','Sorted String Tables，不可变数据文件，定期压缩合并'],
+    ['磁盘 Disk','Hints','提示数据，故障节点恢复后重放']
+    ]}},
+    {tip:'Cassandra 最出色的是**写操作性能**，而且性能不会随节点扩展而降低。'}
+   ]},
+  {id:'c1-9-2',t:'写入流程（Write）',src:'P32-P34',_search:'写 commit log memtable flush sstable compaction 压缩 合并 提示移交 hint 3小时 system.hints',
+   b:[
+    {h:'写操作步骤'},
+    {ul:[
+     '执行写操作时，先将数据存储到 **Commit Logs（提交日志）**，以便节点故障时可以恢复写入',
+     '数据副本写入内存表 **Memtable**，并且定期刷新到磁盘，写入 **SSTables（Sorted String Tables，提供磁盘存储）**，以提高写入性能',
+     '如果不同写操作在同一行中更新了不同的列，将产生多个 SSTable 文件；Cassandra 具有**压缩（Compaction）机制**，定期合并 SSTables'
+    ]},
+    {h:'Commit Log 的关键特性'},
+    {ul:[
+     '用于记录对磁盘的写操作，作为故障恢复机制',
+     '**所有 Keyspace（表空间）共享一个提交日志**，协调器节点只要把写操作追加到提交日志中即算写入完成（追加写、顺序写）——这是 Cassandra 写效率高的原因之一'
+    ]},
+    {h:'Hinted Handoff 提示移交'},
+    {ul:[
+     '当应当写入的副本节点被感应到发生故障/无响应时，协调者会在本地存储一个 **hint**，放入 `system.hints` 表',
+     'hint 包含三部分：**发生故障的副本节点位置、哪一行需要被重新写入、需要写入的实际数据**',
+     'Gossip 发现故障节点恢复重连时，协调器节点重放先前失败的写操作提示，然后删除提示',
+     '**默认情况下 hint 存储 3 个小时**（`max_hint_window_in_ms: 10800000`）；副本故障超过 3 小时，该节点可能被视为永久性故障，需依赖 repair/副本修复保证一致'
+    ]}
+   ]},
+  {id:'c1-9-3',t:'缓存机制（Key Cache / Row Cache）',src:'P33',_search:'key cache row cache 键缓存 行缓存 OOM 小表 大表 读性能',
+   b:[
+    {ul:[
+     '**Key Caches（键缓存）**、**Row Caches（行缓存）**用于缓存经常访问的数据，以提高读性能',
+     '**键缓存默认开启**；**行缓存默认关闭**（小表建议开启，大表不建议开启，容易出现 OOM）',
+     '课件调优示例：`key_cache_size_in_mb: 0`（关闭 key cache 的一种极端调法）、`row_cache_size_in_mb` 使用操作系统物理内存（建议 1/4）、`row_cache_save_period: 1000` 定时刷盘并在启动时预热'
+    ]}
+   ]},
+  {id:'c1-9-4',t:'读取流程（Read）与协调器节点',src:'P35-P36',_search:'读 协调器节点 coordinator 副本 replica row cache key cache 压缩偏移量 memtable sstable 合并 负载均衡 驱动',
+   b:[
+    {h:'读操作步骤'},
+    {ul:[
+     '客户端连接到**协调器节点**，由它确定哪些节点保存数据副本',
+     '首先查找 **Row Cache（行缓存，如启用）**，所需数据在行缓存中命中则立即返回',
+     '检查 **Key Cache（键缓存，如启用）**：在键缓存中找到分区键后，可通过读内存中的**压缩偏移量**了解数据的存储位置',
+     '检查内存表 **Memtable** 是否存在所需数据',
+     '从磁盘上的 **SSTables** 获取数据，并与 Memtable 中的数据**组合合并**，构建所查询数据的视图',
+     '如果启用行缓存，Cassandra 会将结果写入行缓存（加快读取），并将结果返回给协调器节点'
+    ]},
+    {h:'协调器节点（Coordinator Node）'},
+    {ul:[
+     '客户端可以是运行 CQL 命令的用户，也可以通过 **Cassandra 驱动**连接',
+     '**Cassandra 驱动实现了负载均衡**：客户端可以连接集群中的**任何节点**启动读取或写入',
+     '客户端连接到的节点称为**协调器节点**（无中心架构）：负责与其他节点交互、收集结果、并将查询结果返回给客户端'
+    ]}
+   ]}
+  ]},
+ {id:'c1-10',t:'数据存储模型（七层结构）',src:'P37-P43',_search:'Cluster Keyspace Table Partition Row Column Cell 存储模型 层级 RDBMS database primary key partition key clustering key 复合主键',
+  children:[
+  {id:'c1-10-1',t:'七层模型与 Cluster / Keyspace',src:'P37-P38',_search:'cluster 集群 keyspace 键空间 复制因子 副本放置策略 列族 commitlog durable_writes',
+   b:[
+    {p:'Cassandra 数据存储模型按顺序分为：**Cluster → KeySpace → Table → Partition → Columns/Row → Cell**。'},
+    {ul:[
+     '**Cluster（集群）**：跨越一个或多个节点的 keyspaces 容器',
+     '**KeySpace（键空间，对应 RDBMS 的 Database）**：一个键空间包含多张表，一般将有关联的数据表放到同一个 KeySpace 下'
+    ]},
+    {h:'键空间的基本属性'},
+    {ul:[
+     '**复制因子**：集群中将接收相同数据副本的计算机数',
+     '**副本放置策略**：简单策略（SimpleStrategy）、网络拓扑策略（NetworkTopologyStrategy）',
+     '**列族**：键空间是一个或多个列族列表的容器，列族又是行集合的容器；每行包含有序列，列族表示数据结构',
+     'KeySpace 创建时可指定副本策略、副本因子、是否启用 CommitLog 机制（`durable_writes`）等'
+    ]}
+   ]},
+  {id:'c1-10-2',t:'Table 与 Partition',src:'P39-P40',_search:'table 表 partition 分区 token range sstable 组成 物理分布',
+   b:[
+    {ul:[
+     '**Table（表）**：概念和 RDBMS 很类似；不同的是，属于同一张表的数据在物理上**分布在不同节点**存储，同一张表由多个 Partition 组成',
+     'Cassandra Cluster 由多台节点组成，管理的所有数据被表示成**环（ring）**，环被划分为与节点数量等同的**范围（range）**',
+     '每个节点加入集群时都要发放一个**令牌（token）**，决定节点在环中的位置以及负责的数据 range',
+     '每个节点负责的 Token 范围由**多个 Partition** 构成；每个 Partition 由一行或多行数据组成；**多个 Partition 组成一个 SSTable 文件**'
+    ]}
+   ]},
+  {id:'c1-10-3',t:'Row / Column 与 Cell',src:'P41-P42',_search:'row 行 column 列 name value cell 单元格 时间戳 ttl 删除标记',
+   b:[
+    {ul:[
+     '**Column（列）**：Cassandra 的基本数据结构，代表 name/value 对',
+     '**Row（行）**：一个包含多个 columns 的容器，由一个 primary key 引用；row 的 unique identifier 叫做 **row key 或 primary key**',
+     '**Cell**：每列数据的底层实现，Cell 中包含列的定义信息，比如**是否被删除、是否过期、是否设置了时间戳**等'
+    ]}
+   ]},
+  {id:'c1-10-4',t:'三种常用 Key（主键体系）',src:'P43',_search:'primary key partition key clustering key 主键 分区键 聚簇键 范围查询 where 顺序 复合主键',
+   b:[
+    {table:{h:['Key 类型','作用','WHERE 支持'],w:['24%','52%','24%'],rows:[
+    ['**primary key** 主键','用来获取某一行的数据，可以是一列或多列','—'],
+    ['**partition key** 分区键','用来进行分区；可以是单一主键，也可以是复合主键','`=`(eq)、`and`、`in`'],
+    ['**clustering key** 聚簇键','主要用于 Range Query（范围查找），使用时需按建表顺序提供信息','`<`、`<=`、`=`、`>=`、`>`、`in`']
+    ]}},
+    {warn:'Cassandra 查询限制多：只能单表查询，不支持联表/子查询；查询条件只支持 key 查询和索引列查询，且 key 有顺序限制（WHERE 中 clustering key 必须按建表顺序出现，不能跳过前序列）。'}
+   ]}
+  ]}
+ ]},
+{
+ id:'c2',t:'第二章 Cassandra 分布式集群实战',src:'终章 2.1-2.8',
+ children:[
+ {id:'c2-1',t:'集群环境规划',src:'2.1',_search:'规划 硬件 CPU 内存 JVM 硬盘 SSD 网络 节点数 操作系统 CentOS Ubuntu python 端口',
+  b:[
+   {h:'生产环境配置建议'},
+   {table:{h:['项目','建议'],w:['22%','78%'],rows:[
+    ['CPU','16 线程+，开启压缩'],
+    ['内存','8G+，推荐 64G-256G；JVM 堆 8G-32G'],
+    ['硬盘','SSD，1T+，分配 50-80% 给数据'],
+    ['网络','1GB+ 网卡'],
+    ['节点','3 节点+（奇数、副本因子≥3）']
+   ]}},
+   {h:'个人测试环境'},
+   {ul:[
+    'CPU 8 线程+；物理机内存 32G，每个节点建议 4G+',
+    '3 节点起步，本课程最多 6 节点'
+   ]},
+   {h:'支持的操作系统'},
+   {ul:[
+    'Ubuntu LTS 16.04 ~ 18.04',
+    'CentOS / RHEL 6.6 ~ 7.7+',
+    'Amazon Linux AMI 2016.09 ~ Linux 2、Debian 8/9、SUSE Enterprise Linux 12',
+    '系统自带 Python 2.7（cqlsh 依赖，必须 2.7）以及 Python 3.6'
+   ]},
+   {h:'课程实验环境（6 节点）'},
+   {table:{h:['主机名','IP','角色'],w:['34%','30%','36%'],rows:[
+    ['fgedudata01','192.168.1.61','种子节点 / 主 NTP'],
+    ['fgedudata02','192.168.1.62','种子节点'],
+    ['fgedudata03','192.168.1.63','种子节点'],
+    ['fgedudata04','192.168.1.64','普通节点'],
+    ['fgedudata05','192.168.1.65','普通节点'],
+    ['fgedudata06','192.168.1.66','普通节点（扩容演示）']
+   ]},
+   tip:'标准分区：swap 8G、/ 92G；数据盘通过 LVM 挂载到 /data。'}
+  ]},
+ {id:'c2-2',t:'操作系统环境准备（15 步）',src:'2.1',_search:'hosts bash_profile LVM pvcreate vgcreate lvcreate xfs fstab 用户组 limits.conf sysctl.conf 时区 selinux 防火墙 firewalld vimrc 透明大页 THP zone_reclaim ntp chrony 重启 内核参数',
+  children:[
+  {id:'c2-2-1',t:'01-05：hosts / 语言 / 文件系统 / 用户 / 启动级别',src:'2.1',
+   b:[
+    {h:'01 配置 6 台机器 /etc/hosts'},
+    {code:{lang:'bash',text:'echo "192.168.1.61 fgedudata01" > /etc/hosts\necho "192.168.1.62 fgedudata02" >> /etc/hosts\necho "192.168.1.63 fgedudata03" >> /etc/hosts\necho "192.168.1.64 fgedudata04" >> /etc/hosts\necho "192.168.1.65 fgedudata05" >> /etc/hosts\necho "192.168.1.66 fgedudata06" >> /etc/hosts\ncat /etc/hosts'}},
+    {h:'02 操作系统语言环境'},
+    {code:{lang:'bash',text:'echo "export LANG=en_US.UTF8" >> ~/.bash_profile'}},
+    {h:'03 准备文件系统（LVM + XFS 挂载 /data）'},
+    {code:{lang:'bash',text:'pvcreate /dev/sdb\nvgcreate datavg /dev/sdb\nlvcreate -n datalv -L 100000M datavg\nmkfs.xfs /dev/datavg/datalv\n# vi /etc/fstab 增加：\n# /dev/datavg/datalv /data xfs defaults 0 0\nmkdir /data && mount /data\nmkdir /data/soft\nmkdir -p /u01/cassandra/{commitlog,data,saved_caches}'}},
+    {h:'04 创建用户、组并授权'},
+    {code:{lang:'bash',text:'groupadd -g 60001 cassandra\nuseradd -u 61001 -g cassandra cassandra\nchown -R cassandra:cassandra /data\nchmod -R 775 /data\necho "cassandra" | passwd --stdin cassandra'}},
+    {h:'05 启动级别改为字符界面'},
+    {code:{lang:'bash',text:'systemctl set-default multi-user.target'}}
+   ]},
+  {id:'c2-2-2',t:'06-07：limits.conf 与 sysctl.conf 内核参数',src:'2.1',
+   b:[
+    {h:'06 /etc/security/limits.conf 资源限制'},
+    {code:{lang:'bash',text:'cat >> /etc/security/limits.conf << EOF\nroot soft nofile 1048576\nroot hard nofile 1048576\ncassandra soft nproc 32768\ncassandra hard nproc 32768\ncassandra soft nofile 32768\ncassandra hard nofile 32768\ncassandra hard memlock unlimited\ncassandra soft memlock unlimited\nEOF'}},
+    {h:'07 /etc/sysctl.conf 内核参数'},
+    {code:{lang:'bash',text:'cat >> /etc/sysctl.conf << EOF\nfs.aio-max-nr = 1048576\nfs.file-max = 6815744\nnet.core.rmem_max = 16777216\nnet.core.wmem_max = 16777216\nnet.core.rmem_default = 16777216\nnet.core.wmem_default = 16777216\nnet.core.optmem_max = 40960\nnet.ipv4.tcp_rmem = 4096 87380 16777216\nnet.ipv4.tcp_wmem = 4096 65536 16777216\nvm.swappiness=1\nvm.min_free_kbytes=204800\nvm.max_map_count=2048000\nkernel.pid_max=819200\nvm.zone_reclaim_mode=0\nEOF\nsysctl -p'}}
+   ]},
+  {id:'c2-2-3',t:'09-013：时区 / SELinux / 防火墙 / THP / NUMA',src:'2.1',_search:'时区 Shanghai selinux firewalld 透明大页 rc.local numa',
+   b:[
+    {h:'09 修改时区'},
+    {code:{lang:'bash',text:'ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime\nhwclock'}},
+    {h:'010 禁用 SELINUX 并关闭防火墙'},
+    {code:{lang:'bash',text:'echo "SELINUX=disabled" > /etc/selinux/config\necho "#SELINUXTYPE=targ" >> /etc/selinux/config\nsetenforce 0\nsystemctl stop firewalld.service\nsystemctl disable firewalld.service'}},
+    {h:'11 解决配置 yml 文件粘贴乱码（vim paste）'},
+    {code:{lang:'bash',text:'cat >> /home/cassandra/.vimrc << EOF\nmap <F10>:set paste<CR>\nmap <F11>:set nopaste<CR>\nEOF'}},
+    {h:'012 关闭透明大页 Transparent Huge Pages（rc.local 开机生效）'},
+    {code:{lang:'bash',text:'cat >> /etc/rc.d/rc.local << EOF\nif test -f /sys/kernel/mm/transparent_hugepage/enabled; then\necho never > /sys/kernel/mm/transparent_hugepage/enabled\nfi\nif test -f /sys/kernel/mm/transparent_hugepage/defrag; then\necho never > /sys/kernel/mm/transparent_hugepage/defrag\nfi\nEOF\nchmod +x /etc/rc.d/rc.local\n/etc/rc.d/rc.local'}},
+    {h:'013 NUMA 系统禁用 zone_reclaim_mode'},
+    {code:{lang:'bash',text:'cat >> /etc/rc.d/rc.local << EOF\necho 0 > /proc/sys/vm/zone_reclaim_mode\nEOF'}}
+   ]},
+  {id:'c2-2-4',t:'014-015：NTP 时钟同步与重启',src:'2.1',_search:'ntp chrony ntpdate ntpq ntpstat cdrom yum repo 时钟',
+   b:[
+    {p:'RHEL/CentOS 7.x 默认装 chrony，课程要求先卸载 chrony 再装 ntp；以 192.168.1.61 作为本地 NTP 服务器，其他节点与其同步。'},
+    {code:{lang:'bash',text:'# 挂载系统光盘做本地 yum 源\numount /mnt; mount /dev/cdrom /mnt\ncd /etc/yum.repos.d && mkdir bk && mv *.repo bk/\necho "[EL7-1]" > /etc/yum.repos.d/itpux.repo\necho "name =Linux-7" >> /etc/yum.repos.d/itpux.repo\necho "baseurl=file:///mnt." >> /etc/yum.repos.d/itpux.repo\necho "gpgcheck=0" >> /etc/yum.repos.d/itpux.repo\necho "enabled=1" >> /etc/yum.repos.d/itpux.repo\nyum -y remove chrony\nyum install -y ntp'}},
+    {h:'主 NTP（192.168.1.61）'},
+    {code:{lang:'bash',text:'echo "server 127.127.1.0 iburst" >> /etc/ntp.conf\nsystemctl restart ntpd && systemctl enable ntpd\nntpq -p && ntpstat'}},
+    {h:'其他节点'},
+    {code:{lang:'bash',text:'echo server 192.168.1.61 >> /etc/ntp.conf\necho restrict 192.168.1.61 nomodify notrap noquery >> /etc/ntp.conf\nntpdate -u 192.168.1.61\nhwclock -w\nsystemctl restart ntpd && systemctl enable ntpd\nntpq -p'}},
+    {h:'015 重启系统使全部配置生效'},
+    {code:{lang:'bash',text:'shutdown -r now'}}
+   ]}
+  ]},
+ {id:'c2-3',t:'软件安装（JDK8 + Cassandra 4.0）',src:'2.3',_search:'JDK JAVA_HOME jdk1.8 tar 解压 cassandra tar.gz PATH cqlsh version python2.7 scp 分发',
+  b:[
+   {h:'01 JDK 环境安装（JDK 8+）'},
+   {p:'先把安装包分发到各节点 /data/，然后解压并配置环境变量：'},
+   {code:{lang:'bash',text:'scp *.gz 192.168.1.62:/data/   # 依次分发到 62-66\nsu - cassandra\ncd /data/\ntar zxvf jdk-8u261-linux-x64.tar.gz\ncat >> ~/.bash_profile << EOF\nexport JAVA_HOME=/data/jdk1.8.0_261\nexport PATH=/data/jdk1.8.0_261/bin:\\$PATH\nexport LANG=en_US.UTF8\nEOF\nsource ~/.bash_profile\njava -version'}},
+   {h:'02 Cassandra 软件安装（依赖 python2.7）'},
+   {code:{lang:'bash',text:'su - cassandra\ncd /data/\ntar xzvf apache-cassandra-4.0.1-bin.tar.gz\nmv apache-cassandra-4.0.1 cassandra\ncat >> ~/.bash_profile << EOF\nexport PATH=/data/jdk1.8.0_261/bin:/data/cassandra/bin:\\$PATH\nEOF\nsource ~/.bash_profile\ncqlsh --version'}},
+   {tip:'本资料包附带的是 apache-cassandra-4.0.7-bin.tar.gz；脚本中版本号为变量，4.0.x 通用。'}
+  ]},
+ {id:'c2-4',t:'多节点集群配置（cassandra.yaml）',src:'2.4',_search:'cassandra.yaml cluster_name num_tokens seeds listen_address rpc_address data_file_directories commitlog_directory saved_caches authenticator endpoint_snitch GossipingPropertyFileSnitch request_timeout 线程 缓存 commitlog compaction batch 调优 jvm8-server.options G1 GC cassandra-rackdc.properties',
+  children:[
+  {id:'c2-4-1',t:'基本配置项（必改）',src:'2.4',
+   b:[
+    {p:'配置文件：`/data/cassandra/conf/cassandra.yaml`'},
+    {table:{h:['配置项','值 / 说明'],w:['34%','66%'],rows:[
+    ['`cluster_name`','`FgeduCluster` 集群名称，全集群必须一致'],
+    ['`num_tokens`','`16` 每节点虚拟节点数，默认 16 不改'],
+    ['`- seeds: "..."`','种子节点列表：`192.168.1.61,192.168.1.62,192.168.1.63`；新节点通过种子获取集群成员信息'],
+    ['`listen_address`','本机内网 IP（逐台不同，如 192.168.1.61），节点间 gossip 通信'],
+    ['`rpc_address`','本机对外服务 IP（逐台不同），CQL 客户端监听地址'],
+    ['`data_file_directories`','`- /data/cassandra/data`（可多个目录分行写；默认 /var/lib/cassandra/data）'],
+    ['`commitlog_directory`','`/data/cassandra/commitlog`，建议独立磁盘'],
+    ['`saved_caches_directory`','`/data/cassandra/saved_caches`，Key/Row Cache 缓存文件目录'],
+    ['`authenticator`','`PasswordAuthenticator` 启用密码登录（配 CassandraAuthorizer 做权限）'],
+    ['`request_timeout_in_ms`','`30000` 网关超时，全集群保持一致'],
+    ['`endpoint_snitch`','`GossipingPropertyFileSnitch` 拓扑感知（生产推荐）']
+    ]}},
+    {h:'endpoint_snitch 两种常见取值'},
+    {ul:[
+     '**GossipingPropertyFileSnitch**：通过 gossip 传达集群拓扑；每节点在 `cassandra-rackdc.properties` 定义自己所属 DC 和机架后 gossip 交换；若存在 cassandra-topology.properties 也会生效（冲突时以 rackdc 为准）',
+     '**SimpleSnitch**：不理解网络拓扑，不知道机架/数据中心，不适合多数据中心部署'
+    ]},
+    {ul:[
+     '动态 snitch：`dynamic_snitch_update_interval_in_ms: 100`、`dynamic_snitch_reset_interval_in_ms: 10000`、`dynamic_snitch_badness_threshold: 0.1`（首选节点比最快节点慢 10% 即失去首选状态）'
+    ]}
+   ]},
+  {id:'c2-4-2',t:'性能调优参数（线程 / 内存 / 缓存）',src:'2.4',
+   b:[
+    {h:'线程分配优化'},
+    {table:{h:['参数','值','说明'],w:['38%','14%','48%'],rows:[
+    ['`native_transport_max_threads`','4092','处理 CQL 请求的最大线程数'],
+    ['`memtable_flush_writers`','2','刷盘线程'],
+    ['`concurrent_compactors`','8','压缩线程（建议=CPU 核数）'],
+    ['`concurrent_reads`','512','并发读线程（经验值 8 × 核数）'],
+    ['`concurrent_writes`','256','并发写线程（经验值 8 × 核数）'],
+    ['`concurrent_counter_writes`','512','并发计数器写线程（8 × 核数）']
+    ]}},
+    {h:'内存 / 缓存优化'},
+    {table:{h:['参数','值','说明'],w:['38%','14%','48%'],rows:[
+    ['`cdc_enabled`','false','关闭变更数据捕获 CDC'],
+    ['`key_cache_size_in_mb`','0','关闭 key cache（课程调法）'],
+    ['`row_cache_size_in_mb`','32768','row cache 使用物理内存（建议物理内存 1/4）'],
+    ['`row_cache_save_period`','1000','定时刷缓存到磁盘，启动预热优化读'],
+    ['`row_cache_keys_to_save`','0','保存所有 key'],
+    ['`file_cache_size_in_mb`','8192','SSTable 读缓存大小'],
+    ['`buffer_pool_use_heap_if_exhausted`','false','读缓存耗尽时不占用 heap'],
+    ['`hinted_handoff_throttle_in_kb`','128000','提示移交同步带宽 100MB/s'],
+    ['`hints_flush_period_in_ms`','1000','hint 刷盘周期'],
+    ['`max_hints_file_size_in_mb`','128','单个 hints 文件上限'],
+    ['`index_summary_capacity_in_mb`','1024','索引摘要内存大小']
+    ]}},
+    {h:'数据结构 / CommitLog / Compaction'},
+    {table:{h:['参数','值','说明'],w:['38%','16%','46%'],rows:[
+    ['`batch_size_warn_threshold_in_kb`','5000','批量超过 5M 报警'],
+    ['`batch_size_fail_threshold_in_kb`','100000','批量超过 100M 直接失败'],
+    ['`commitlog_sync`','periodic','周期异步持久化，避免 batch 写阻塞'],
+    ['`commitlog_sync_period_in_ms`','1000','1 秒间隔刷新'],
+    ['`commitlog_segment_size_in_mb`','32','每个 commitlog 段 32M'],
+    ['`commitlog_total_space_in_mb`','4096','commitlog 总量 4G，满后促使 memtable 刷盘'],
+    ['`compaction_throughput_mb_per_sec`','64','大量写场景尽快压缩']
+    ]}}
+   ]},
+  {id:'c2-4-3',t:'JVM / G1 GC 调优（jvm8-server.options）',src:'2.4',_search:'cassandra-env.sh MAX_HEAP_SIZE CMS G1 UseG1GC ParallelRefProcEnabled G1RSetUpdatingPauseTimePercent MaxGCPauseMillis InitiatingHeapOccupancyPercent ParallelGCThreads ConcGCThreads Xloggc gc.log',
+   b:[
+    {p:'JVM 堆在 `cassandra-env.sh` 中配置 `MAX_HEAP_SIZE`（生产 8G-32G）；GC 参数在 `conf/jvm8-server.options`。课程实测 **G1 相对 CMS 暂停时间更短，强烈建议使用 G1**（关闭 CMS、开启 G1）：'},
+    {table:{h:['JVM 参数','说明'],w:['46%','54%'],rows:[
+    ['`-XX:+UseG1GC`','启用 G1 垃圾回收器'],
+    ['`-XX:+ParallelRefProcEnabled`','多线程并行处理引用（默认关闭）'],
+    ['`-XX:G1RSetUpdatingPauseTimePercent=5`','限制更新 RSet（记忆集合）的暂停时间占比'],
+    ['`-XX:MaxGCPauseMillis=500`','最长 GC 暂停目标 500ms'],
+    ['`-XX:InitiatingHeapOccupancyPercent=70`','老年代占堆 70% 触发 mixed GC'],
+    ['`-XX:ParallelGCThreads=4`','并行 GC 线程数，建议≈CPU 核数'],
+    ['`-XX:ConcGCThreads=4`','并发 GC 线程数，建议≈CPU 核数'],
+    ['`-Xloggc:/data/cassandra/logs/gc.log`','GC 日志路径']
+    ]}},
+   {tip:'资料包 配置/jvm8-server.options 已按课程改好，注意其中 -Xloggc 路径为 /u01/cassandra/logs/gc.log，与 /data 部署路径二选一保持一致。'}
+  ]},
+  {id:'c2-4-4',t:'分发配置与机架感知文件',src:'2.4',_search:'scp conf 分发 rackdc properties dc rack 机架 数据中心',
+   b:[
+    {p:'在 61 改好配置后分发到其他节点，再逐台修改 listen_address / rpc_address：'},
+    {code:{lang:'bash',text:'scp -r /data/cassandra/conf cassandra@192.168.1.62:/data/cassandra/\nscp -r /data/cassandra/conf cassandra@192.168.1.63:/data/cassandra/\nscp -r /data/cassandra/conf cassandra@192.168.1.64:/data/cassandra/\nscp -r /data/cassandra/conf cassandra@192.168.1.65:/data/cassandra/\n# 各节点 vi /data/cassandra/conf/cassandra.yaml\n# listen_address / rpc_address 改成本机 IP'}},
+    {p:'`cassandra-rackdc.properties` 定义本节点所属数据中心与机架（单机房示例 dc1/rack1，跨 DC 见 2.8）：'},
+    {code:{lang:'properties',text:'dc=dc1\nrack=rack1'}}
+   ]}
+  ]},
+ {id:'c2-5',t:'systemd 开机自启动与集群启停验证',src:'2.5',_search:'systemd service 开机自启动 daemon-reload start enable status 启动顺序 种子节点 nodetool status UN cqlsh describe cluster keyspace replication_factor getendpoints',
+  b:[
+   {h:'配置 /etc/systemd/system/cassandra.service'},
+   {code:{lang:'ini',text:'[Unit]\nDescription=Cassandra Server Service\nAfter=network.service\n[Service]\nType=simple\nEnvironment=JAVA_HOME=/data/jdk1.8.0_261\nPIDFile=/data/cassandra/cassandra.pid\nUser=cassandra\nGroup=cassandra\nExecStart=/data/cassandra/bin/cassandra -f -p /data/cassandra/cassandra.pid\nStandardOutput=journal\nStandardError=journal\nLimitNOFILE=100000\nLimitMEMLOCK=infinity\nLimitNPROC=32768\nLimitAS=infinity\n[Install]\nWantedBy=multi-user.target'}},
+   {h:'启动（先种子 61/62/63，再其他节点）'},
+   {code:{lang:'bash',text:'systemctl daemon-reload\nsystemctl start cassandra\nsystemctl enable cassandra\nps -ef | grep cassandra\ntail -f /data/cassandra/logs/system.log   # 或 journalctl -u cassandra'}},
+   {h:'手工启停方式'},
+   {ul:[
+    '后台启动：`cassandra`；停止：`pkill -f CassandraDaemon`（或 `nodetool stopdaemon`）',
+    '前台调试启动：`cassandra -f`，Ctrl+C 停止（启动报错时优先前台调试）'
+   ]},
+   {h:'集群状态验证 nodetool status'},
+   {ul:[
+    '状态码：**U/D** = Up/Down；**N/L/J/M** = Normal / Leaving / Joining / Moving；如 `UN` 表示正常在线',
+    '输出每节点 Address、Load、Tokens(16)、Owns(%)、Host ID、Rack'
+   ]},
+   {h:'登录与建库建表验证'},
+   {code:{lang:'sql',text:'cqlsh 192.168.1.61\ncqlsh 192.168.1.61 -u cassandra -p cassandra\ncassandra@cqlsh> describe cluster;\n\nCREATE KEYSPACE fgdatabase WITH REPLICATION = {\'class\':\'SimpleStrategy\',\'replication_factor\':3};\nUSE fgdatabase;\nCREATE TABLE fgedu01 (id int, user_name varchar, PRIMARY KEY (id));\nINSERT INTO fgedu01 (id,user_name) VALUES (1,\'fgedu01\');\n-- 查看某 key 的数据分布在哪些节点：\n-- nodetool getendpoints fgdatabase fgedu01 1'}}
+  ]},
+ {id:'c2-6',t:'集群扩容：增加节点（192.168.1.66）',src:'2.71',_search:'增加节点 扩容 新节点 add node bootstrap cleanup 删除 data commitlog saved_caches 复制目录',
+  b:[
+   {ul:[
+    '新节点按前面的要求完成操作系统环境准备与软件安装',
+    '配置 `cassandra.yaml`（cluster_name、seeds 与集群一致，listen/rpc 为本机 IP）、systemd',
+    '**如果是复制其他节点目录过来的，必须先清空数据目录**：`commitlog`、`data`、`saved_caches` 三个目录，否则启动报集群状态错误',
+    '出问题时前台调试：`cassandra -f`',
+    '启动：`systemctl daemon-reload && systemctl start cassandra && systemctl enable cassandra`',
+    '新节点状态为 Joining（J），数据流式搬迁完成后变 UN',
+    '**在原有节点执行 `nodetool cleanup`**：清理旧节点上不再归其负责的数据，释放磁盘空间',
+    '验证：`nodetool status fgdatabase`、`cqlsh 192.168.1.66`、`select count(*) from fgdata01;`、`nodetool getendpoints ...`'
+   ]},
+   {code:{lang:'bash',text:'# 复制目录场景的清理\nrm -rf /data/cassandra/data/* /data/cassandra/commitlog/* /data/cassandra/saved_caches/*\n# 启动后在旧节点执行\nnodetool cleanup'}}
+  ]},
+ {id:'c2-7',t:'集群缩容：删除故障/退役节点',src:'2.7.2',_search:'删除节点 removenode host-id decommission 故障节点 describecluster removenode force status',
+  b:[
+   {h:'删除故障节点（节点已宕机）'},
+   {ul:[
+    '在一个正常节点执行 `nodetool status`，获取宕机节点的 **Host ID**',
+    '执行 `nodetool removenode <host-id>` 移除节点',
+    '`nodetool removenode status` 查看删除进度；一直等待某节点时用 `nodetool removenode force` 强制停止',
+    '`nodetool describecluster` 查看异常节点/集群信息'
+   ]},
+   {h:'正常退役节点（节点还活着，推荐）'},
+   {ul:[
+    '在待下线节点执行 `nodetool decommission`：关闭当前节点并把数据复制到环中紧邻的下一个节点，当前节点不再对外服务，完成后即可下线'
+   ]},
+   {code:{lang:'bash',text:'nodetool status                              # 找 Host ID\nnodetool removenode c31393f0-52ae-4721-8875-1773d4474c3c\nnodetool removenode status\nnodetool removenode force\n# 正常退役：\nnodetool decommission'}}
+  ]},
+ {id:'c2-8',t:'多节点跨数据中心配置（异地容灾）',src:'2.8',_search:'跨数据中心 多DC 异地容灾 fgdc1 fgdc2 fgrake NetworkTopologyStrategy LOCAL_QUORUM seeds 种子 rackdc 容灾 复制因子',
+  b:[
+   {ul:[
+    '建议至少 **2 个数据中心，每个 DC 至少 3 个节点，每个 DC 至少 1 个机架**，可实现异地容灾，官方推荐生产使用'
+   ]},
+   {h:'6 节点双 DC 规划'},
+   {table:{h:['IP','DC','角色'],w:['34%','33%','33%'],rows:[
+    ['192.168.1.61 / .62','fgdc1','seed'],
+    ['192.168.1.63','fgdc1','普通节点'],
+    ['192.168.1.64 / .65','fgdc2','seed'],
+    ['192.168.1.66','fgdc2','普通节点']
+   ]}},
+   {h:'重建数据目录（61-66 全部执行）'},
+   {code:{lang:'bash',text:'systemctl stop cassandra\nrm -rf /data/cassandra/data\nrm -rf /data/cassandra/commitlog\nrm -rf /data/cassandra/saved_caches\nmkdir -p /data/cassandra/{data,commitlog,saved_caches}'}},
+   {h:'cassandra.yaml：seeds 包含两个 DC 的种子'},
+   {code:{lang:'yaml',text:'- seeds: "192.168.1.61,192.168.1.62,192.168.1.64,192.168.1.65"'}},
+   {h:'每台机器配置 cassandra-rackdc.properties'},
+   {code:{lang:'bash',text:'# 61-63（fgdc1）\ndc=fgdc1\nrack=fgrack1\n# 64-66（fgdc2）\ndc=fgdc2\nrack=fgrack2'}},
+   {h:'启动顺序：先各 DC 种子（61/62/64/65），再支节点（63/66）'},
+   {h:'建 Keyspace 时按 DC 指定副本因子'},
+   {code:{lang:'sql',text:"CREATE KEYSPACE fgdcdatabase WITH replication = {\n  'class':'NetworkTopologyStrategy',\n  'fgdc1':3,\n  'fgdc2':3\n};\nUSE fgdcdatabase;\nCREATE TABLE fgedu02 (id int, user_name varchar, PRIMARY KEY(id));"}},
+   {h:'客户端使用要点'},
+   {ul:[
+    '客户端一致性策略从 QUORUM 改为 **LOCAL_QUORUM**：先查本地 LOCAL 数据中心，查不到再访问 REMOTE 数据中心',
+    'Java 官方驱动把**首次连接上的节点所属 DC 视为 LOCAL**；不要把容灾 DC 节点 IP 配到代码中',
+    '复制节点目录启动报错时：删除 commitlog/data/saved_caches 三目录后前台 `cassandra -f` 调试',
+    '启动出错查看：`journalctl -u cassandra`、`tail -f /data/cassandra/logs/system.log`'
+   ]}
+  ]}
+ ]},
+{
+ id:'c3',t:'第三章 Cassandra 分布式数据库管理入门',src:'课件 P44-P60 + 终章',
+ children:[
+ {id:'c3-1',t:'集群常用端口',src:'P45',_search:'端口 7199 JMX 7000 7001 TLS 9160 Thrift 9042 CQL 防火墙',
+  b:[
+   {table:{h:['端口','用途'],w:['18%','82%'],rows:[
+    ['**7199**','JMX 监控端口（Cassandra 0.8.x 之前为 8080）'],
+    ['**7000**','节点间通信（gossip / 数据传输）；启用 TLS 后不使用'],
+    ['**7001**','TLS 节点间通信（启用 TLS 时使用）'],
+    ['**9160**','Thrift 客户端 API（老接口）'],
+    ['**9042**','CQL 本地传输端口（Native Transport，客户端/cqlsh/TablePlus 默认端口）']
+   ]}},
+   {warn:'生产环境 9042/9160 不要直接暴露到公网，需用防火墙限制；跨机访问前先放通 7000/7001/7199/9042。'}
+  ]},
+ {id:'c3-2',t:'CQL 语言基础',src:'P46',_search:'CQL SQL DDL DML Queries create use alter drop truncate insert update delete batch select where order by 三类',
+  b:[
+   {p:'CQL 与 SQL（结构化查询语言）类似，语句分为 3 类：'},
+   {table:{h:['类别','全称','关键字'],w:['16%','34%','50%'],rows:[
+    ['**DDL**','数据定义语言','`CREATE` / `USE` / `ALTER` / `DROP` / `TRUNCATE`'],
+    ['**DML**','数据操纵语言','`INSERT` / `UPDATE` / `DELETE` / `BATCH`'],
+    ['**Queries**','查询','`SELECT` / `WHERE` / `ORDER BY`']
+   ]}}
+  ]},
+ {id:'c3-3',t:'Cassandra 数据类型',src:'P47-P50',_search:'数据类型 varchar text ascii int bigint smallint tinyint varint float double decimal date time timestamp uuid timeuuid set list map blob inet counter',
+  b:[
+   {h:'文本类型'},
+   {table:{h:['类型','说明'],w:['22%','78%'],rows:[
+    ['`varchar`','UTF-8 编码的字符串'],['`text`','UTF-8 编码的字符串'],['`ascii`','ASCII 字符串']]}},
+   {h:'数字类型'},
+   {table:{h:['类型','说明'],w:['22%','78%'],rows:[
+    ['`int`','32 位有符号整型'],['`bigint`','64 位长整型'],['`smallint`','16 位有符号整型'],
+    ['`tinyint`','8 位有符号整型'],['`varint`','可变精度有符号整数'],
+    ['`float`','32 位 IEEE-754 浮点型'],['`double`','64 位 IEEE-754 浮点型'],['`decimal`','可变精度 decimal']]}},
+   {h:'时间类型'},
+   {table:{h:['类型','说明 / 示例'],w:['22%','78%'],rows:[
+    ['`date`','日期 yyyy-mm-dd，如 \'2011-02-03\''],
+    ['`time`','\'08:12:54\'、\'08:12:54.123\'、\'08:12:54.123456789\''],
+    ['`timestamp`','时间戳，如 1299038700000 或 \'2011-02-03 04:05+0000\'、\'2011-02-03T04:05:00.000+0000\'']]}},
+   {h:'其它类型'},
+   {table:{h:['类型','说明'],w:['22%','78%'],rows:[
+    ['`uuid`','通用唯一识别码，128 位数据类型'],
+    ['`timeuuid`','基于计算机 MAC 地址、系统时间和防重复序列号实现'],
+    ['`set`','集合数据类型（无序、不重复）'],['`list`','有序的列表数据（可重复）'],
+    ['`map`','key/value 键值对'],['`blob`','二进制大对象'],
+    ['`inet`','IPv4 或 IPv6 网络地址'],['`counter`','计数器类型，64 位有符号整数']]}},
+   {tip:'完整类型：https://cassandra.apache.org/doc/latest/cassandra/cql/types.html'}
+  ]},
+ {id:'c3-4',t:'可视化工具 TablePlus',src:'P51',_search:'TablePlus 可视化 客户端 连接 下载 端口 9042',
+  b:[
+   {ul:[
+    'TablePlus 是一款强大的数据库编辑器，本机快速安全，支持多标签、SQL 编辑、代码审查、可定制外观',
+    '基础版免费，支持 Linux / Windows / macOS',
+    '官方下载：https://tableplus.com/（资料包内附 TablePlusSetup.exe）',
+    '新建连接（create a new connection）选择 Cassandra：默认用户名/密码都是 **cassandra**，端口默认 **9042**'
+   ]}
+  ]},
+ {id:'c3-5',t:'cqlsh 登录与内置命令',src:'终章',_search:'cqlsh 登录 --version --color --debug --execute --file -u -p capture copy describe expand show source login help',
+  b:[
+   {h:'登录与常用参数'},
+   {code:{lang:'bash',text:'cqlsh 192.168.1.61\ncqlsh 192.168.1.61 -u cassandra -p cassandra\ncqlsh --version              # 查看版本\ncqlsh --color / --no-color   # 彩色/非彩色输出\ncqlsh --debug                # 更多调试信息\ncqlsh --execute "select * from ks.tb"   # 直接执行 CQL\ncqlsh --file=文件名           # 执行文件中的命令后退出\ncqlsh -u 用户名 -p 密码        # 身份验证（默认 cassandra/cassandra）\ncqlsh --help                 # 帮助'}},
+   {h:'常用 shell 命令'},
+   {table:{h:['命令','用途 / 示例'],w:['22%','78%'],rows:[
+    ['`DESCRIBE`','`describe cluster;` / `describe keyspaces;` / `describe tables;` / `describe table 名;` / `describe types;`（可简写 desc）'],
+    ['`CAPTURE`','把查询结果输出到文件：`CAPTURE \'/data/fgedu01.txt\'` → 查询 → `capture off;`'],
+    ['`COPY`','数据导入导出（见 3.8）'],
+    ['`EXPAND`','`expand on;` 纵向展开每行（列多时查看），`expand off;` 关闭'],
+    ['`SOURCE`','执行外部 CQL 文件：`source \'/data/fg.txt\';`'],
+    ['`SHOW`','`show host;`、`show version;`'],
+    ['`LOGIN`','切换登录用户'],['`CLS`','清屏'],['`EXIT`','退出 cqlsh']]}},
+    {h:'免密登录（cqlshrc）'},
+    {code:{lang:'bash',text:'mkdir -p /home/cassandra/.cassandra\ncat > /home/cassandra/.cassandra/cqlshrc << EOF\n[authentication]\nusername = root\npassword = rootroot\nEOF\n# 之后 cqlsh 192.168.1.61 不再需要输入密码'}}
+  ]},
+ {id:'c3-6',t:'Keyspace 键空间操作',src:'终章 4.2',_search:'keyspace 键空间 create alter drop SimpleStrategy NetworkTopologyStrategy replication_factor 复制因子 durable_writes commitlog',
+  b:[
+   {h:'复制策略与复制因子'},
+   {ul:[
+    '**简单策略 SimpleStrategy**：单数据中心使用；第一个副本放在所选节点，其余副本沿环顺时针放置，不考虑机架/DC 位置',
+    '**网络拓扑策略 NetworkTopologyStrategy**：多数据中心使用，必须分别为每个 DC 指定复制因子',
+    '**复制因子 RF**：同一份数据在不同节点上的副本数；RF > 2 才能避免单点故障，**建议 3 个以上**',
+    '`durable_writes = true`：是否对当前 KeySpace 的更新使用 commitlog（默认 true）'
+   ]},
+   {h:'创建 / 修改 / 删除'},
+   {code:{lang:'sql',text:"-- 简单策略\nCREATE KEYSPACE fgdata01 WITH replication = {'class':'SimpleStrategy','replication_factor':2};\n-- 网络拓扑策略\nCREATE KEYSPACE fgdata02 WITH REPLICATION = {'class':'NetworkTopologyStrategy','fgdc1':3,'fgdc2':2};\nDESCRIBE keyspaces;\n-- 修改副本因子\nALTER KEYSPACE fgdata01 WITH replication = {'class':'SimpleStrategy','replication_factor':3};\n-- 删除\nDROP KEYSPACE fgdata01;"}}
+  ]},
+ {id:'c3-7',t:'表、索引与增删改查',src:'终章 4.3',_search:'create table alter add drop truncate index 索引 batch 批处理 insert update delete select 查询限制 索引列',
+  b:[
+   {h:'建表 / 改表 / 删表 / 截断'},
+   {code:{lang:'sql',text:'CREATE TABLE fgtable01(\n  id int PRIMARY KEY,\n  name text,\n  city text,\n  sal varint,\n  phone varint\n);\nALTER TABLE fgtable01 ADD address text;   -- 加列\nALTER TABLE fgtable01 DROP address;       -- 删列\nDROP TABLE fgtable01;\nTRUNCATE fgedu01;                         -- 清空表'}},
+   {h:'二级索引'},
+   {code:{lang:'sql',text:'CREATE INDEX idx_fgdata01 ON fgdata01 (name);\nDROP INDEX idx_fgdata01;'}},
+   {h:'BATCH 批处理（插入/更新/删除一起执行）'},
+   {code:{lang:'sql',text:'BEGIN BATCH\nINSERT INTO fgedu01 (id, user_name) VALUES (3,\'itpux03\');\nINSERT INTO fgedu01 (id, user_name) VALUES (4,\'itpux04\');\nDELETE FROM fgedu01 WHERE id=2;\nAPPLY BATCH;'}},
+   {h:'增删改'},
+   {code:{lang:'sql',text:"INSERT INTO fgedu01 (id,user_name) VALUES (1,'fgedu01');\nUPDATE fgedu01 SET user_name='itpux02' WHERE id=2;\nDELETE FROM fgedu01 WHERE id=1;\nDELETE name FROM fgedu01 WHERE id=1;   -- 删某列，该字段被置为 null"}},
+   {h:'查询与限制'},
+   {ul:[
+    '只能**单表查询**，不支持联表查询（join）和子查询',
+    '查询条件只支持 **key 查询和索引列查询**，且 key 有顺序限制',
+    '主键查询：`select * from fgedu01 where id=1;`',
+    '索引列查询：`select * from fgedu01 where user_name=\'fgedu02\';`（未建索引会直接报错）'
+   ]}
+  ]},
+ {id:'c3-8',t:'COPY 数据导入导出',src:'终章',_search:'copy 导入 导出 csv txt delimiter header 批量数据',
+  b:[
+   {h:'导入（文本文件，逗号分隔）'},
+   {code:{lang:'sql',text:"CREATE TABLE fgdata01 (id int,name varchar,zddate timestamp,income DECIMAL,outgo DECIMAL,mall varchar,PRIMARY KEY(id));\nCOPY fgdata01(id,name,zddate,income,outgo,mall)\nFROM '/data/fgdata01.txt' WITH delimiter=',' AND header=false;\n-- 文件行示例：1234567891,itpux01,20210714,2345,0,淘宝"}},
+   {h:'导出'},
+   {code:{lang:'sql',text:"COPY fgdata01(id,name,zddate,income,outgo,mall) TO '/data/fgdata001.txt';"}}
+  ]},
+ {id:'c3-9',t:'用户、角色与权限',src:'终章 4.4',_search:'用户 权限 角色 role user PasswordAuthenticator CassandraAuthorizer system_auth superuser create user drop list grant revoke authenticate cqlshrc login',
+  b:[
+   {h:'开启认证与授权'},
+   {code:{lang:'yaml',text:'# cassandra.yaml\nauthenticator: PasswordAuthenticator\nauthorizer: CassandraAuthorizer\n# 重启后自动创建 system_auth 键空间及 credentials/users/permissions（4.x 为 roles 等表）'}},
+   {code:{lang:'bash',text:'nodetool stopdaemon\nsystemctl restart cassandra\n# 默认超级用户：cassandra / cassandra\ncqlsh 192.168.1.61 -u cassandra -p cassandra'}},
+   {h:'用户管理'},
+   {code:{lang:'sql',text:"CREATE USER root WITH PASSWORD 'rootroot' SUPERUSER;\n-- 用新超管重新登录后才能删除默认账号\n-- cqlsh 192.168.1.61 -u root -p rootroot\nDROP USER cassandra;\nLIST USERS;\nCREATE USER fgedu1 WITH PASSWORD 'fgedu1' SUPERUSER;\nCREATE USER fgedu2 WITH PASSWORD 'fgedu2' NOSUPERUSER;"}},
+   {ul:[
+    '只有 SUPERUSER 可以创建/删除用户；新建用户默认 NOSUPERUSER；任何用户不能删除自己',
+    '可在 `system_auth.roles` 表中查看已有用户：`use system_auth; select * from roles;`'
+   ]},
+   {h:'角色 ROLE'},
+   {code:{lang:'sql',text:"CREATE ROLE appgroup1;\nCREATE ROLE appgroup2 WITH PASSWORD='appgroup2' AND LOGIN=true;\nCREATE ROLE appgroup3 WITH PASSWORD='appgroup3' AND LOGIN=true AND SUPERUSER=true;\nLIST ROLES;\nLIST ROLES OF appgroup2;\nALTER ROLE appgroup2 WITH PASSWORD='appgroup2' AND SUPERUSER=false;\nGRANT appgroup3 TO appgroup2;      -- 角色权限传递\nREVOKE appgroup3 FROM appgroup2;"}},
+   {h:'权限类型与授权'},
+   {p:'权限：`CREATE`、`ALTER`、`DROP`、`SELECT`、`MODIFY`、`AUTHORIZE`、`DESCRIBE`、`EXECUTE`'},
+   {code:{lang:'sql',text:'GRANT SELECT ON fgdcdatabase.fgedu01 TO appgroup2;\nGRANT MODIFY ON KEYSPACE fgdcdatabase TO appgroup2;\nGRANT ALL PERMISSIONS ON KEYSPACE ks TO user_name;\nREVOKE SELECT ON fgdcdatabase.fgedu01 FROM appgroup2;\nREVOKE ALL PERMISSIONS ON resource FROM user_name;\nLIST ALL PERMISSIONS;\nLIST ALL PERMISSIONS OF appgroup2;\n-- resource：ALL KEYSPACES / KEYSPACE ks / TABLE ks.tb'}}
+  ]},
+ {id:'c3-10',t:'日常监控（OS 层）',src:'P53-P54',_search:'监控 CPU 内存 IO GC top free iostat iowait await df du nodetool info debug.log system.log 停顿',
+  b:[
+   {table:{h:['监控项','命令 / 关注点'],w:['18%','82%'],rows:[
+    ['CPU','`top`'],
+    ['内存','`free -h` 可用内存；`top -c` 内存使用；`nodetool info` 查看 Cassandra 内存使用'],
+    ['磁盘 IO','`iostat -x -t 8`：重点看 `%iowait`（IO 等待占比）、`await`（平均等待毫秒数）；`df`、`du`'],
+    ['GC','查看 debug.log / system.log，GC 停顿超过 1s、或 1s 内停顿多次都不正常'],
+    ['集群','nodetool 系列命令（见下）']
+   ]}},
+   {p:'nodetool 是命令行工具集，在节点上直接运行，监控 Cassandra 并执行例行数据库操作，封装了大多数重要的 JMX 指标和操作：'},
+   {code:{lang:'bash',text:'nodetool help                 # 所有可用命令\nnodetool help command-name    # 指定命令帮助'}}
+  ]},
+ {id:'c3-11',t:'nodetool 命令大全',src:'P55-P60 + 终章',_search:'nodetool describecluster ring status netstats info tpstats tablestats cfstats cfhistograms compactionstats decommission rebuild removenode flush repair drain move loadbalance describering getendpoints getsstables compact scrub enablebackup garbagecollect snapshot refresh verify resetlocalschema sstabledump rebuild_index',
+  children:[
+  {id:'c3-11-1',t:'集群监控命令',src:'P55',
+   b:[
+    {table:{h:['命令','作用'],w:['34%','66%'],rows:[
+    ['`nodetool describecluster`','输出集群信息（名称、分区器、schema 版本、故障节点）'],
+    ['`nodetool ring`','查询环（token ring）状态'],
+    ['`nodetool status`','集群环的快速摘要和当前状况（UN/DN 等，最常用）'],
+    ['`nodetool netstats`','网络连接操作的统计数据（流式、handoff 等）'],
+    ['`nodetool info`','查看某个节点负载、内存使用、运行时间等'],
+    ['`nodetool tpstats`','列出线程池信息：各阶段操作数量及活动/等待/完成状态'],
+    ['`nodetool tablestats`（cfstats）','表统计：读写次数、SSTable 数量、memtable、压缩、bloom filter；可指定 keyspace.table'],
+    ['`nodetool tablehistograms`（cfhistograms）','表统计：读写延迟、行大小、列数量、SSTable 数量分布'],
+    ['`nodetool compactionstats`','当前正在压缩的任务进度']
+    ]}}
+   ]},
+  {id:'c3-11-2',t:'集群管理命令（增删/退役/维护）',src:'P56-P57',
+   b:[
+    {table:{h:['命令','作用'],w:['36%','64%'],rows:[
+    ['`nodetool decommission`','关闭当前节点，把数据复制到环中紧邻的下一个节点，当前节点不再对外服务（**活着的节点正常退役**）'],
+    ['`nodetool rebuild`','新数据中心加入时运行，把数据复制到新 DC'],
+    ['`nodetool removenode HostID`','删除一个（已宕机的）节点；`status` 看进度、`force` 强制'],
+    ['`nodetool flush [ks]`','把 memtable 数据刷到磁盘 SSTable（必须带 keyspace 参数）'],
+    ['`nodetool repair [ks]`','修复数据，让多副本数据一致（同样需指定 keyspace）'],
+    ['`nodetool drain`','把 memtable 刷新到 SSTable，并终止与其他节点联系；执行后需重启，**一般版本升级时使用**'],
+    ['`nodetool move`','将当前节点数据转移到另一个指定的集群节点（重设 token）'],
+    ['`nodetool loadbalance`','上传当前节点数据到其他节点，并把读请求转发到环中其他节点']
+    ]}}
+   ]},
+  {id:'c3-11-3',t:'集群空间相关命令',src:'P58',
+   b:[
+    {table:{h:['命令','作用'],w:['44%','56%'],rows:[
+    ['`nodetool describering <ks>`','后跟 keyspace 名，显示圆环的节点信息'],
+    ['`nodetool getendpoints <ks> <tb> <key>`','查看某个 key 分布在哪一个节点上'],
+    ['`nodetool getsstables <ks> <tb> <key>`','查看某个 key 分布在哪一个 SSTable 上'],
+    ['`nodetool compact [ks [tb]]`','合并 SSTable 文件（major compaction）'],
+    ['`nodetool scrub [ks tb]`','清洗指定表的 SSTable，删除损坏部分、保留完好部分']
+    ]}}
+   ]},
+  {id:'c3-11-4',t:'备份与数据正确性命令',src:'P59-P60',_search:'备份 snapshot 快照 refresh enablebackup 增量备份 garbagecollect repair verify resetlocalschema rebuild_index sstabledump',
+   b:[
+    {table:{h:['命令','作用'],w:['40%','60%'],rows:[
+    ['`nodetool enablebackup`','开启**增量备份**：data 目录每增加一个 SSTable，backup 目录创建一个硬链接，可异步备份到 S3/OSS'],
+    ['`nodetool snapshot`','对全部（或指定）keyspace 做快照，按时间戳命名，存放在表 dataDir/snapshots/<时间戳>/'],
+    ['`nodetool refresh`','手动把 SSTable 导入正确位置后执行，完成恢复加载'],
+    ['`nodetool garbagecollect`','主动做 GC 回收，用于磁盘空间告警场景'],
+    ['`nodetool repair`','修数据，让多副本数据一致'],
+    ['`nodetool verify`','数据巡检，检查 SSTable 内数据和 CRC 是否一致'],
+    ['`nodetool resetlocalschema`','从集群其他节点同步 schema（各节点表 schema 必须一致）'],
+    ['`nodetool rebuild_index`','二级索引与 base 表不一致时重建索引'],
+    ['`sstabledump`','命令行工具，把上述工具生成的 SSTable 作为输入导出查看内容']
+    ]}},
+    {h:'快照备份与恢复流程'},
+    {ul:[
+     '备份：`nodetool snapshot <ks>` → 把 snapshots/<ts>/ 目录数据文件拷贝走',
+     '恢复：清空/准备表目录 → 把 SSTable 文件手动放回表 dataDir → `nodetool refresh -- <ks> <table>` 加载',
+     '日常增量：`nodetool enablebackup` 后 backup/ 目录持续生成硬链接'
+    ]}
+   ]}
+  ]}
+ ]}
+]
+
+
+/* ============ 工具 ============ */
+var STATE={view:'outline',activeId:null,expanded:{},matches:[]};
+try{var sv=JSON.parse(localStorage.getItem('cass_km_state'));if(sv){STATE.view=sv.view||'outline';STATE.expanded=sv.expanded||{}}}catch(e){}
+function saveState(){try{localStorage.setItem('cass_km_state',JSON.stringify({view:STATE.view,expanded:STATE.expanded}))}catch(e){}}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmt(s){ // **bold** 与 `code`
+  s=esc(s);
+  s=s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  s=s.replace(/`([^`]+?)`/g,'<code>$1</code>');
+  return s;
+}
+var FLAT=[];
+function index(nodes,path){
+  nodes.forEach(function(n){
+    n._path=path.concat(n.t).join(' / ');
+    FLAT.push(n);
+    if(n.children) index(n.children,path.concat(n.t));
+  });
+}
+index(DATA,[]);
+var IDLE_EXPAND={};
+(function(){
+  DATA.forEach(function(ch){IDLE_EXPAND[ch.id]=true;(ch.children||[]).forEach(function(s){IDLE_EXPAND[s.id]=true})});
+})();
+
+/* ============ 树渲染 ============ */
+function nodeLevelClass(lvl){return 'lvl-'+lvl}
+function renderTree(){
+  var html='<ul>';
+  DATA.forEach(function(n){html+=renderNode(n,0)});
+  html+='</ul>';
+  document.getElementById('tree').innerHTML=html;
+  bindTree();
+}
+function renderNode(n,lvl){
+  var has=!!(n.children&&n.children.length);
+  var open=(STATE.expanded[n.id]!==undefined)?STATE.expanded[n.id]:(IDLE_EXPAND[n.id]===true);
+  var cls=nodeLevelClass(lvl)+(open?'':' collapsed');
+  var s='<li class="'+cls+'" data-id="'+n.id+'">';
+  s+='<div class="node'+(STATE.activeId===n.id?' active':'')+'">';
+  s+='<span class="twist '+(has?'':'empty')+'">▼</span>';
+  s+='<span class="node-title" data-label="'+n.id+'">'+highlight(n.t)+(n.src?'<span class="src">'+n.src+'</span>':'')+'</span>';
+  s+='</div>';
+  if(has){s+='<ul>';n.children.forEach(function(c){s+=renderNode(c,lvl+1)});s+='</ul>';}
+  s+='</li>';
+  return s;
+}
+function highlight(t){
+  var q=document.getElementById('searchInput').value.trim().toLowerCase();
+  if(!q)return esc(t);
+  var tl=t.toLowerCase(),i=tl.indexOf(q);
+  if(i<0)return esc(t);
+  return esc(t.slice(0,i))+'<mark>'+esc(t.slice(i,i+q.length))+'</mark>'+esc(t.slice(i+q.length));
+}
+function bindTree(){
+  var lis=document.querySelectorAll('#tree li');
+  lis.forEach(function(li){
+    var twist=li.querySelector(':scope > .node .twist');
+    var label=li.querySelector(':scope > .node .node-title');
+    twist.addEventListener('click',function(e){e.stopPropagation();toggle(li);});
+    label.addEventListener('click',function(e){
+      e.stopPropagation();
+      var id=li.getAttribute('data-id');
+      var n=byId(id);
+      if(n.children&&n.children.length){
+        if(STATE.view==='mind'){toggle(li);}
+        else{toggle(li,true);}
+      }
+      openDetail(id);
+      if(STATE.view==='mind'&&(!n.children||!n.children.length)){setView('outline')}
+    });
+  });
+}
+function toggle(li,forceOpen){
+  var id=li.getAttribute('data-id');
+  var nowCollapsed=li.classList.contains('collapsed');
+  if(forceOpen&&!nowCollapsed)return;
+  li.classList.toggle('collapsed');
+  STATE.expanded[id]=!li.classList.contains('collapsed');
+  saveState();
+}
+function byId(id){for(var i=0;i<FLAT.length;i++)if(FLAT[i].id===id)return FLAT[i];return null}
+function expandAll(open){
+  FLAT.forEach(function(n){if(n.children&&n.children.length)STATE.expanded[n.id]=open});
+  saveState();renderTree();
+}
+
+/* ============ 搜索 ============ */
+function search(q){
+  q=q.trim().toLowerCase();
+  var meta=document.getElementById('searchMeta');
+  document.querySelectorAll('#tree li').forEach(function(li){li.classList.remove('hidden','dim')});
+  if(!q){meta.style.display='none';STATE.matches=[];renderTree();return}
+  var hitIds={},goodIds={};
+  FLAT.forEach(function(n){
+    var hay=(n.t+' '+(n._search||'')+' '+JSON.stringify(n.b||'')).toLowerCase();
+    if(hay.indexOf(q)>=0){
+      hitIds[n.id]=true;goodIds[n.id]=true;
+      var p=parentMap[n.id];while(p){goodIds[p]=true;p=parentMap[p];}
+    }
+  });
+  document.querySelectorAll('#tree li').forEach(function(li){
+    var id=li.getAttribute('data-id');
+    if(!goodIds[id]){li.classList.add('hidden')}
+    else{
+      li.classList.remove('collapsed');
+      if(!hitIds[id])li.classList.add('dim');
+    }
+  });
+  STATE.matches=Object.keys(hitIds);
+  meta.style.display='block';
+  meta.textContent='命中 '+STATE.matches.length+' 个知识点，回车逐个跳转';
+  // 重绘高亮
+  document.querySelectorAll('#tree .node-title').forEach(function(el){
+    var n=byId(el.getAttribute('data-label'));
+    el.innerHTML=highlight(n.t)+(n.src?'<span class="src">'+n.src+'</span>':'');
+  });
+}
+var parentMap={};
+(function(){function walk(ps,list){list.forEach(function(n){parentMap[n.id]=ps;if(n.children)walk(n.id,n.children)})}walk(null,DATA)})();
+document.getElementById('searchInput').addEventListener('input',function(){search(this.value)});
+document.getElementById('searchInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&STATE.matches.length){
+    var cur=STATE.matches.indexOf(STATE.activeId);
+    var next=STATE.matches[(cur+1)%STATE.matches.length];
+    openDetail(next);
+    var li=document.querySelector('#tree li[data-id="'+next+'"]');
+    if(li&&li.classList.contains('hidden')===false)li.scrollIntoView({block:'center'});
+  }
+  if(e.key==='Escape'){this.value='';search('');this.blur()}
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();document.getElementById('searchInput').focus()}
+});
+document.querySelectorAll('.chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    var inp=document.getElementById('searchInput');
+    inp.value=c.getAttribute('data-k');search(inp.value);inp.focus();
+    if(STATE.matches[0]){openDetail(STATE.matches[0]);if(STATE.view==='mind')setView('outline')}
+  });
+});
+
+/* ============ 详情渲染 ============ */
+function openDetail(id){
+  var n=byId(id);if(!n)return;
+  STATE.activeId=id;saveState();
+  document.querySelectorAll('#tree .node').forEach(function(el){el.classList.remove('active')});
+  var li=document.querySelector('#tree li[data-id="'+id+'"]');
+  if(li){li.querySelector(':scope > .node').classList.add('active');
+    // 确保父级展开（同步状态，便于后续重渲染保持）
+    var p=parentMap[id];while(p){var pl=document.querySelector('#tree li[data-id="'+p+'"]');if(pl)pl.classList.remove('collapsed');STATE.expanded[p]=true;p=parentMap[p];}
+  }
+  document.getElementById('noSel').classList.add('hidden2');
+  var d=document.getElementById('detail');d.classList.remove('hidden2');
+  // 面包屑
+  var crumbs=n._path.split(' / ');
+  var html='<div class="crumb">'+crumbs.map(function(c,i){return i===crumbs.length-1?'<b>'+esc(c)+'</b>':esc(c)}).join('  ›  ')+'</div>';
+  html+='<div class="dtitle">'+esc(n.t)+(n.src?'<span class="badge">'+n.src+'</span>':'')+'</div>';
+  html+='<div class="dcontent">'+renderBlocks(n.b||[])+'</div>';
+  // 上一条/下一条（叶子序列）
+  var leaves=FLAT.filter(function(x){return !(x.children&&x.children.length)});
+  var idx=leaves.indexOf(n);
+  html+='<div class="navbtns"><div>'+(idx>0?'<button data-go="'+leaves[idx-1].id+'">‹ '+esc(leaves[idx-1].t)+'</button>':'')+'</div>'
+      +'<div>'+(idx<leaves.length-1?'<button data-go="'+leaves[idx+1].id+'">'+esc(leaves[idx+1].t)+' ›</button>':'')+'</div></div>';
+  d.innerHTML=html;
+  d.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){openDetail(b.getAttribute('data-go'));document.getElementById('detailPane').scrollTop=0})});
+  d.querySelectorAll('.copybtn').forEach(function(b){b.addEventListener('click',function(){
+    var t=b.closest('.codewrap').querySelector('pre').innerText;
+    navigator.clipboard&&navigator.clipboard.writeText(t);
+    var old=b.innerText;b.innerText='已复制';setTimeout(function(){b.innerText=old},1200);
+  })});
+  document.getElementById('detailPane').scrollTop=0;
+  var li2=document.querySelector('#tree li[data-id="'+id+'"]');
+  if(li2){li2.querySelector(':scope > .node').classList.add('active');li2.scrollIntoView({block:'nearest'})}
+}
+function renderBlocks(bs){
+  var h='';
+  bs.forEach(function(b){
+    if(b.h)h+='<h4 class="block-h">'+fmt(b.h)+'</h4>';
+    if(b.p)h+='<p>'+fmt(b.p)+'</p>';
+    if(b.ul)h+=renderUl(b.ul);
+    if(b.tip)h+='<div class="tip">'+fmt(b.tip)+'</div>';
+    if(b.warn)h+='<div class="warn">'+fmt(b.warn)+'</div>';
+    if(b.code)h+='<div class="codewrap"><div class="codebar"><span>'+(b.code.lang||'shell')+'</span><button class="copybtn">复制</button></div><pre>'+esc(b.code.text)+'</pre></div>';
+    if(b.table)h+=renderTable(b.table);
+  });
+  return h;
+}
+function renderUl(items){
+  var h='<ul>';
+  items.forEach(function(it){
+    if(typeof it==='string')h+='<li>'+fmt(it)+'</li>';
+    else h+='<li>'+fmt(it.t)+(it.c&&it.c.length?'<ul>'+it.c.map(function(x){return '<li>'+fmt(x)+'</li>'}).join('')+'</ul>':'')+'</li>';
+  });
+  return h+'</ul>';
+}
+function renderTable(t){
+  var h='<table><colgroup>'+t.h.map(function(c,i){return '<col style="width:'+(t.w?t.w[i]:Math.floor(100/t.h.length))+'%">'}).join('')+'</colgroup><thead><tr>';
+  t.h.forEach(function(c){h+='<th>'+fmt(c)+'</th>'});h+='</tr></thead><tbody>';
+  t.rows.forEach(function(r){h+='<tr>'+r.map(function(c){return '<td>'+fmt(c)+'</td>'}).join('')+'</tr>'});
+  h+='</tbody></table>';
+  if(t.note)h+='<div class="tip">'+fmt(t.note)+'</div>';
+  return h;
+}
+
+/* ============ 视图切换 ============ */
+function setView(v){
+  STATE.view=v;saveState();
+  document.body.classList.toggle('mind',v==='mind');
+  document.getElementById('btnOutline').classList.toggle('active',v==='outline');
+  document.getElementById('btnMind').classList.toggle('active',v==='mind');
+}
+document.getElementById('btnMind').addEventListener('click',function(){setView('mind')});
+document.getElementById('btnOutline').addEventListener('click',function(){setView('outline')});
+document.getElementById('btnExpand').addEventListener('click',function(){expandAll(true)});
+document.getElementById('btnCollapse').addEventListener('click',function(){expandAll(false)});
+
+/* ============ 启动 ============ */
+setView(STATE.view);
+renderTree();
+</script>
+</body>
+</html>

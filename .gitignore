@@ -1,0 +1,4 @@
+
+# 排除大文件
+cassandra/software/TablePlusSetup.exe
+*.exe
