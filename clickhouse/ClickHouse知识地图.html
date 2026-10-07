@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClickHouse 知识地图 · PB级大数据分析平台</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --panel:#ffffff; --ink:#1f2733; --sub:#5b6675; --line:#e3e8f0;
+    --brand:#0b63ff; --brand2:#0847b3; --code-bg:#0f1b2d; --code-ink:#e6edf7;
+    --green:#15803d; --amber:#b45309; --red:#b91c1c; --tag:#eef3ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  a{color:var(--brand)}
+  /* 顶栏 */
+  header{height:56px;background:linear-gradient(90deg,#0a2a6b,#0b63ff);color:#fff;display:flex;align-items:center;gap:16px;padding:0 18px;position:sticky;top:0;z-index:30;box-shadow:0 2px 10px rgba(10,42,107,.25)}
+  header .logo{font-weight:700;font-size:16px;white-space:nowrap}
+  header .logo small{display:block;font-weight:400;font-size:11px;opacity:.85}
+  .search{flex:1;max-width:560px;position:relative}
+  .search input{width:100%;height:34px;border:none;border-radius:17px;padding:0 38px 0 14px;font-size:13px;outline:none;background:rgba(255,255,255,.92)}
+  .search .kbd{position:absolute;right:10px;top:7px;font-size:11px;color:#667;background:#eef1f6;border:1px solid #d6dce6;border-radius:4px;padding:1px 6px}
+  .search .clear{position:absolute;right:10px;top:6px;display:none;width:22px;height:22px;border:none;background:#dfe5ee;border-radius:50%;cursor:pointer;color:#445}
+  .hbtns{margin-left:auto;display:flex;gap:8px}
+  .hbtns button{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px}
+  .hbtns button:hover{background:rgba(255,255,255,.28)}
+  /* 布局 */
+  .wrap{display:flex;height:calc(100vh - 56px)}
+  nav{width:330px;min-width:330px;background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:10px 8px 40px}
+  main{flex:1;overflow:auto;padding:26px 34px 80px}
+  /* 树 */
+  .node{user-select:none}
+  .row{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;line-height:1.35}
+  .row:hover{background:#f0f5ff}
+  .row.sel{background:#e3eeff;color:var(--brand2);font-weight:600}
+  .row .tw{width:14px;text-align:center;color:#8a94a6;flex:none;transition:transform .12s}
+  .node.open>.row .tw{transform:rotate(90deg)}
+  .row .ic{flex:none;width:18px;text-align:center;font-size:12px}
+  .kids{display:none;margin-left:14px;border-left:1px dashed #dbe2ee;padding-left:4px}
+  .node.open>.kids{display:block}
+  .chap>.row{font-weight:700;font-size:13.5px;color:#0a2a6b}
+  .mark{background:#ffe58a;border-radius:3px}
+  .noresult{padding:20px;color:var(--sub);display:none}
+  /* 详情 */
+  .crumbs{color:var(--sub);font-size:12px;margin-bottom:10px}
+  .detail h1{font-size:22px;margin:0 0 6px;color:#0a2a6b}
+  .detail h2{font-size:16px;margin:24px 0 8px;padding-left:9px;border-left:4px solid var(--brand)}
+  .detail h3{font-size:14px;margin:16px 0 6px;color:#243}
+  .detail p{line-height:1.75;margin:8px 0;color:#2b3545}
+  .detail ul,.detail ol{line-height:1.85;padding-left:22px}
+  .detail li{margin:3px 0}
+  .detail table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px;background:#fff}
+  .detail th,.detail td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  .detail th{background:#f2f6ff;color:#0a2a6b;font-weight:600}
+  .detail tr:nth-child(even) td{background:#fafbfe}
+  code{background:#eef2f8;border-radius:4px;padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:12.5px;color:#0a3a8c}
+  pre{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:9px;padding:13px 14px;overflow:auto;margin:10px 0;font-size:12.5px;line-height:1.65}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  .copy{position:absolute;top:7px;right:8px;border:1px solid #33455f;background:#16273d;color:#cfe0f7;border-radius:5px;font-size:11px;padding:2px 9px;cursor:pointer}
+  .copy:hover{background:#203654}
+  .note,.warn,.ok{border-radius:8px;padding:10px 13px;margin:12px 0;line-height:1.7;font-size:13px}
+  .note{background:#eef4ff;border:1px solid #cfe0ff}
+  .ok{background:#eafaf0;border:1px solid #c4ecd2}
+  .warn{background:#fff6e8;border:1px solid #f5ddb4}
+  .tag{display:inline-block;background:var(--tag);color:var(--brand2);border-radius:10px;padding:1px 9px;font-size:11.5px;margin-right:6px}
+  /* 图示 */
+  .diagram{background:#fff;border:1px dashed #c5d2e8;border-radius:10px;padding:16px;margin:14px 0}
+  .vflow{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .box{border:1.5px solid #8fb0e8;background:#f3f8ff;border-radius:8px;padding:8px 14px;min-width:200px;text-align:center;font-size:13px}
+  .box b{color:#0a3a8c}
+  .box.alt{background:#f0fbf4;border-color:#8fd6a9}
+  .box.warnb{background:#fff7ec;border-color:#e8c48f}
+  .arr{color:#7d90ad;font-size:15px;line-height:1}
+  .layers{display:flex;flex-direction:column;gap:8px}
+  .layer{border-radius:9px;padding:11px 14px;text-align:center;font-size:13px;border:1.5px solid}
+  .layer.l1{background:#eef4ff;border-color:#b9d2fb}
+  .layer.l2{background:#eafaf0;border-color:#a9dfbd}
+  .layer.l3{background:#fff7ec;border-color:#eccb95}
+  .layer.l4{background:#f6f0ff;border-color:#cdb6f0}
+  .hrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .hrow .box{min-width:0;flex:1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .small{font-size:12px;color:var(--sub)}
+  .pill{font-size:11px;border-radius:10px;padding:1px 8px;background:#eef2f8;color:#445}
+  .welcome b{color:#0a2a6b}
+  .qcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:14px}
+  .qcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .qcard h4{margin:0 0 6px;font-size:13px;color:#0a2a6b}
+  .qcard pre{margin:6px 0 0}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#c7d0de;border-radius:6px}
+  .man{font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .srcpage{font-size:11px;color:#888;margin:2px 0 6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ClickHouse 知识地图<small>PB级大数据分析平台 · 大规模分布式集群架构</small></div>
+  <div class="search">
+    <input id="q" type="text" placeholder="搜索知识点 / SQL / 命令，如：TTL、ReplicatedMergeTree、9200、用户权限…" autocomplete="off">
+    <span class="kbd">Ctrl K</span>
+    <button class="clear" id="qclear">×</button>
+  </div>
+  <div class="hbtns">
+    <button id="expandAll">全部展开</button>
+    <button id="collapseAll">全部折叠</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav id="tree"></nav>
+  <main id="main"></main>
+</div>
+
+<!-- ============================ 详情内容库 ============================ -->
+<div id="details" style="display:none">
+
+<!-- 欢迎页 -->
+<section id="welcome" class="detail welcome">
+  <h1>ClickHouse 知识地图使用指南</h1>
+  <p>本知识地图完整保留了 <b>《ClickHouse数据库.pptx》（77 页）</b>的核心框架，并融合 <b>clickhouse笔记.txt</b> 的实操命令，按官网四章组织。目标是：<b>需要时 10 秒内定位到对应知识与可复制的 SQL/命令</b>。</p>
+  <div class="ok"><b>怎么用：</b>
+    <ul style="margin:6px 0">
+      <li>左侧目录树按 <b>章 → 节 → 知识点</b> 层级展开，点击即看详情；</li>
+      <li>顶部搜索框（快捷键 <code>Ctrl/⌘ + K</code>）可同时搜索标题与正文，自动展开命中节点；</li>
+      <li>所有 SQL / 命令块右上角有 <b>复制</b> 按钮；</li>
+      <li>先看 <b>「速查手册」</b>（端口、目录、登录、高频运维）。</li>
+    </ul>
+  </div>
+  <h2>官网整体框架</h2>
+  <table>
+    <tr><th>章</th><th>主题</th><th>核心内容</th></tr>
+    <tr><td>第1章</td><td>基础知识</td><td>OLTP/OLAP/HTAP、行式/列式存储、ClickHouse 定位、核心架构（Parser/Intercepter/IStorage/Column）、存储引擎、本地表/分布式表、分区、索引</td></tr>
+    <tr><td>第2章</td><td>分布式特性与方案</td><td>集群、分片、副本、读写流程、4 种复制模式、3 种架构方案对比、ZooKeeper、生产最优架构</td></tr>
+    <tr><td>第3章</td><td>生产项目</td><td>环境准备、单机/多实例安装、分片、副本复制、高可用、扩容、版本升级、chproxy 负载分发</td></tr>
+    <tr><td>第4章</td><td>日常维护入门</td><td>客户端、POC 测试、配置文件、用户权限、数据类型、存储引擎、SQL、分区操作、导入导出、运维监控</td></tr>
+  </table>
+</section>
+
+<!-- 速查手册 -->
+<section id="qref" class="detail">
+  <h1>速查手册（Cheat Sheet）</h1>
+  <div class="qcards">
+    <div class="qcard"><h4>端口</h4>
+      <pre><code>TCP 原生协议  9000（多实例9200）
+HTTP          8123（多实例8224）
+MySQL 协议    9004（多实例9204）
+副本 interserver 9009（多实例9209）
+ZooKeeper     32181（内部2888/3888）
+chproxy       9090</code></pre></div>
+    <div class="qcard"><h4>目录</h4>
+      <pre><code>/clickhouse/soft   安装包
+/clickhouse/app    程序
+/clickhouse/data   数据
+/clickhouse/log    日志
+/clickhouse/etc    配置
+/etc/clickhouse-server  → 软链</code></pre></div>
+    <div class="qcard"><h4>登录</h4>
+      <pre><code>clickhouse-client -h 127.0.0.1 \
+  --port 9000 --user default
+clickhouse-client --multiquery
+clickhouse-client -q "SELECT 1"</code></pre></div>
+    <div class="qcard"><h4>服务管理</h4>
+      <pre><code>systemctl start|stop|restart \
+  clickhouse-server
+systemctl status clickhouse-server
+journalctl -u clickhouse-server -f</code></pre></div>
+    <div class="qcard"><h4>集群/连接</h4>
+      <pre><code>SELECT * FROM system.clusters;
+SELECT * FROM system.metrics;
+SELECT * FROM system.processes;
+SELECT * FROM system.disks;</code></pre></div>
+    <div class="qcard"><h4>建表最小模板</h4>
+      <pre><code>ENGINE=MergeTree()
+PARTITION BY toYYYYMM(d)
+ORDER BY (d,id)
+PRIMARY KEY (d,id)</code></pre></div>
+  </div>
+  <p class="small">完整命令见第 3、4 章；一键安装见同目录 <code>clickhouse_install.sh</code>。</p>
+</section>
+
+<!-- ================= 第1章 ================= -->
+<section id="s111" class="detail">
+  <h1>1.1 数据库应用分类：OLTP / OLAP / HTAP</h1>
+  <table>
+    <tr><th>分类</th><th>全称</th><th>定位</th><th>典型场景 / 产品</th></tr>
+    <tr><td><b>OLTP</b></td><td>联机事务处理</td><td>传统关系型数据库的主要应用，面向基本的、日常的事务处理，强调增删改查与事务一致性</td><td>银行交易、消费记录；MySQL、Oracle、SQL Server</td></tr>
+    <tr><td><b>OLAP</b></td><td>联机分析处理</td><td>数据仓库的主要应用，支持复杂分析操作，侧重决策支持；按数据量处理，聚合结果直观</td><td>大数据分析、报表、可视化；ClickHouse、Greenplum、Hive、Vertica</td></tr>
+    <tr><td><b>HTAP</b></td><td>混合事务/分析处理</td><td>OLTP + OLAP 的混合架构，在同一套数据上同时完成事务处理与分析，避免 ETL 搬迁</td><td>TiDB、OceanBase、SingleStore 等</td></tr>
+  </table>
+  <div class="note">ClickHouse 属于 <b>OLAP 联机分析型数据库</b>：一次写入、多次查询；为“海量数据的高速聚合分析”而生。</div>
+</section>
+
+<section id="s121" class="detail">
+  <h1>1.2 数据库存储方式：行存储 vs 列存储</h1>
+  <div class="grid2">
+    <div>
+      <h3>行式存储（Row-based）</h3>
+      <p>同一行数据连续存储。产品：Oracle、MySQL、PostgreSQL、DB2、SQL Server。</p>
+      <ul>
+        <li>数据按行写入，<b>一次性完成、节省时间、保证完整性</b>；</li>
+        <li>通过索引查询一条记录很快；但建立索引和物化视图成本高、耗时；</li>
+        <li>无索引时查询需大量 I/O；分析查询即使只取几列也要读取整行。</li>
+      </ul>
+    </div>
+    <div>
+      <h3>列式存储（Column-based）</h3>
+      <p>同一列数据连续存储。产品：ClickHouse、HBase、Greenplum、Vertica、HANA。</p>
+      <ul>
+        <li>查询时<b>只读取涉及的列</b>，不产生冗余数据，降低 I/O；</li>
+        <li>同列数据类型一致，可<b>高效压缩</b>（压缩比高，进一步减少 I/O）；</li>
+        <li>每列由一个线程处理，<b>并发性能高</b>，适合聚合分析。</li>
+      </ul>
+    </div>
+  </div>
+  <h3>存储示意（同一份数据）</h3>
+  <pre><code>行式：  [1,xxx,30] [2,xxx,32] [3,xxx,28]
+列式：  列1: 1,2,3
+        列2: xxx,xxx,xxx
+        列3: 30,32,28</code></pre>
+  <div class="warn">列式库的代价：单行整行写入/更新相对麻烦，不适合高频单行事务——这正是 ClickHouse“不擅长 OLTP”的根本原因。</div>
+</section>
+
+<section id="s131" class="detail">
+  <h1>1.3 ClickHouse 简介与应用场景</h1>
+  <p><b>ClickHouse</b> 是俄罗斯 Yandex（类似俄罗斯的 Google/百度）于 <b>2016 年开源</b>的<b>列式存储 MPP 架构（海量数据并行分析）OLAP 分布式数据库</b>，最初为 Yandex 的流量分析产品 ClickHouse?（网页分析，类似 Google Analytics）服务。</p>
+  <h2>主要应用场景</h2>
+  <ul>
+    <li><span class="tag">电信行业</span>用于分析用户通话记录、流量使用情况；</li>
+    <li><span class="tag">互联网</span>用户行为分析（点击流、日志、埋点）、广告网络数据、报表分析；</li>
+    <li><span class="tag">安全</span>安全日志分析、恶意行为检测；</li>
+    <li><span class="tag">物联网</span>传感器、车联网等海量机器数据；</li>
+    <li>PB 级数据的实时/准实时 OLAP 分析与可视化。</li>
+  </ul>
+  <h2>关键特征</h2>
+  <ul>
+    <li>真正的面向列的 DBMS（索引、存储、计算均列式）；</li>
+    <li>数据压缩、多核并行、多服务器分布式部署；</li>
+    <li>支持 SQL（大部分标准语法），提供 TCP(9000)/HTTP(8123)/MySQL(9004) 多种接口；</li>
+    <li>内存引擎、数据采样、近似计算（近似去重、TopN）等工程优化；</li>
+    <li>支持批量、实时数据更新；不依赖 Hadoop 生态，独立运行。</li>
+  </ul>
+</section>
+
+<section id="s132" class="detail">
+  <h1>1.3.2 国内使用案例</h1>
+  <table>
+    <tr><th>公司</th><th>使用规模</th></tr>
+    <tr><td>今日头条（字节跳动）</td><td>数据总量数十 PB，每天新增数百 TB，用于用户行为/广告分析</td></tr>
+    <tr><td>携程</td><td>每天增量 10 亿+，日查询量上百万</td></tr>
+    <tr><td>快手</td><td>总量约 10 PB，每天新增数百 TB</td></tr>
+    <tr><td>腾讯</td><td>游戏数据分析、QQ 音乐等</td></tr>
+    <tr><td>阿里云</td><td>提供 ClickHouse 云托管服务</td></tr>
+    <tr><td>中国电信</td><td>G 网（移动网络）数据分析</td></tr>
+    <tr><td>趣头条</td><td>日增亿级数据</td></tr>
+    <tr><td>其他</td><td>苏宁、喜马拉雅、众安保险、华润万家、同程艺龙等</td></tr>
+  </table>
+</section>
+
+<section id="s133" class="detail">
+  <h1>1.3.3 性能数据：极快的查询速度</h1>
+  <ul>
+    <li>查询速度比传统数据库快 <b>100～1000 倍</b>；</li>
+    <li>每台服务器每秒可处理<b>数十亿到上百亿行</b>；</li>
+    <li>多线程并行处理，单节点峰值吞吐可超过 <b>2TB/s</b>；</li>
+    <li>列式 + 高压缩比减少磁盘 I/O；存储引擎针对分析做了大量优化；</li>
+    <li>官方第三方独立评测：<code>https://clickhouse.tech/benchmark/dbms/</code></li>
+  </ul>
+  <div class="note">官网实测：3 节点分片后，100 万行聚合查询比单机更快；扩容到 6 分片后性能进一步提升（见 3.5 / 3.8）。</div>
+</section>
+
+<section id="s134" class="detail">
+  <h1>1.3.4 容错、高可靠与能力边界</h1>
+  <h2>容错与高可靠</h2>
+  <ul>
+    <li>分布式集群，支持多主机异步复制、跨机房部署；</li>
+    <li>所有节点对等，<b>不存在单点</b>；单个节点甚至单个机房故障不影响服务；</li>
+    <li>具备企业级安全特性（用户、权限、配额、网络白名单）。</li>
+  </ul>
+  <h2>能力边界（选型必知）</h2>
+  <div class="warn">
+    <ul style="margin:4px 0">
+      <li><b>不支持事务</b>（没有真正的事务回滚机制）；</li>
+      <li>没有真正意义上的 <b>UPDATE / DELETE</b>，只能通过 <code>ALTER</code> 做变异（mutation，异步重写数据块，代价高）；</li>
+      <li>不适合高频单行写入与强一致 OLTP 场景。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="s141" class="detail">
+  <h1>1.4.1 ClickHouse 的定位：完整的 DBMS</h1>
+  <p>ClickHouse 是一个<b>分析型数据库管理系统</b>，不是严格的关系型数据库，但功能上是一个<b>完整的 DBMS</b>，包含：</p>
+  <p><span class="pill">实例</span><span class="pill">数据库</span><span class="pill">表</span><span class="pill">行/列</span><span class="pill">DDL</span><span class="pill">DML</span><span class="pill">用户管理</span><span class="pill">配额</span><span class="pill">备份恢复</span><span class="pill">分布式集群</span></p>
+</section>
+
+<section id="s142" class="detail">
+  <h1>1.4.2 服务实例与数据库</h1>
+  <ul>
+    <li>概念与 MySQL 类似：一个进程 = 一个服务实例，默认 TCP 端口 <code>9000</code>；</li>
+    <li>一台主机可运行多个实例，使用不同端口（官网多实例：9200）；</li>
+    <li>数据库本质是“一组文件的集合”；默认有 <code>system</code>、<code>default</code> 两个库；</li>
+  </ul>
+  <pre><code>CREATE DATABASE [IF NOT EXISTS] db_name [ON CLUSTER cluster] [ENGINE=engine(...)];
+SHOW DATABASES;</code></pre>
+</section>
+
+<section id="s143" class="detail">
+  <h1>1.4.3 整体架构与数据访问流程</h1>
+  <p>Server 实现了两类接口：<b>HTTP</b>（外部客户端访问）、<b>TCP</b>（原生客户端、分布式查询时节点间通信），另有副本复制相关接口。</p>
+  <div class="diagram">
+    <div class="vflow">
+      <div class="box"><b>客户端</b>（HTTP 8123 / TCP 9000 / MySQL 9004）</div>
+      <div class="arr">▼ SQL</div>
+      <div class="box"><b>Server</b>：接收连接、鉴权</div>
+      <div class="arr">▼</div>
+      <div class="box"><b>Parsers 分析器</b>：把 SQL 解析成 AST 抽象语法树</div>
+      <div class="arr">▼ AST</div>
+      <div class="box"><b>Intercepter 解释器</b>：解释 AST，创建查询执行通道（执行计划）</div>
+      <div class="arr">▼</div>
+      <div class="box alt"><b>IStorage 存储接口</b>：按 AST 返回原始数据；负责 DDL、读写</div>
+      <div class="arr">▼ 底层由</div>
+      <div class="hrow">
+        <div class="box">Column / Field</div><div class="box">DataType</div><div class="box">Function</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s144" class="detail">
+  <h1>1.4.4 Parser 分析器</h1>
+  <ul>
+    <li>根据 SQL 语句创建 <b>AST（抽象语法树）</b>；</li>
+    <li>不同类型的 SQL 由不同的 Parser 解析（SELECT / INSERT / DDL 等）；</li>
+    <li>AST 以数据结构描述一条 SQL 的组成，交给解释器执行。</li>
+  </ul>
+</section>
+
+<section id="s145" class="detail">
+  <h1>1.4.5 Intercepter 解释器</h1>
+  <ul>
+    <li>负责“解释” AST，根据 AST 创建<b>查询执行通道</b>（执行计划）；</li>
+    <li>串联读取、计算、聚合、排序、返回等执行环节。</li>
+  </ul>
+</section>
+
+<section id="s146" class="detail">
+  <h1>1.4.6 IStorage 存储接口</h1>
+  <ul>
+    <li>根据 AST 负责返回表的原始数据；</li>
+    <li>定义 DDL：<code>ALTER / RENAME / DROP</code>；</li>
+    <li>定义数据的 <code>read</code> 与 <code>write</code> 方法；</li>
+    <li>不同存储引擎（MergeTree、Memory、Kafka…）实现各自的 IStorage。</li>
+  </ul>
+</section>
+
+<section id="s147" class="detail">
+  <h1>1.4.7 Column 与 Field</h1>
+  <ul>
+    <li><b>Column</b>：提供一列数据的读取能力；Column/Field 是最基础的数据映射单元；</li>
+    <li>列式存储中，“一整列数据”由一个 Column 对象表示；</li>
+    <li><b>Field</b>：表示 Column 中的一个单值（单元格）。</li>
+  </ul>
+</section>
+
+<section id="s148" class="detail">
+  <h1>1.4.8 DataType 数据类型</h1>
+  <ul>
+    <li>负责数据的<b>序列化与反序列化</b>；</li>
+    <li>数据最终从 Column 或 Field 中按 DataType 取出；</li>
+    <li>详见 4.5 数据类型（Int32、String、DateTime、Array、Decimal…）。</li>
+  </ul>
+</section>
+
+<section id="s149" class="detail">
+  <h1>1.4.9 Function 函数</h1>
+  <ul>
+    <li>分<b>普通函数</b>与<b>聚合函数</b>，统一实现 IFunction 接口；</li>
+    <li>聚合函数（AggregateFunction）内部维护聚合状态（state），如 count、sum、uniq；</li>
+    <li>支持函数组合（lambda、高阶函数）。</li>
+  </ul>
+</section>
+
+<section id="s1410" class="detail">
+  <h1>1.4.10 存储引擎总览（4 大家族）</h1>
+  <table>
+    <tr><th>引擎族</th><th>用途</th><th>代表引擎</th></tr>
+    <tr><td><b>MergeTree 系列</b></td><td>大数据分析核心，官方主推，具备 ClickHouse 全部核心能力（分区、索引、副本、TTL…）</td><td>MergeTree、ReplicatedMergeTree、Replacing/Summing/AggregatingMergeTree</td></tr>
+    <tr><td><b>Log 系列</b></td><td>小数据分析（约 100 万行以内）、临时数据</td><td>TinyLog、StripeLog、Log</td></tr>
+    <tr><td><b>Special 特殊引擎</b></td><td>固定场景：内存、缓存、文件等</td><td>Memory、File、URL、Buffer、Dictionary、Merge、Live View</td></tr>
+    <tr><td><b>Integration 集成引擎</b></td><td>对接外部数据源，像查本地表一样查外部数据</td><td>Kafka、MySQL、HDFS、JDBC、ODBC、MongoDB</td></tr>
+  </table>
+</section>
+
+<section id="s1411" class="detail">
+  <h1>1.4.11 生产三大引擎</h1>
+  <table>
+    <tr><th>引擎</th><th>作用</th></tr>
+    <tr><td><b>MergeTree</b></td><td>列式、二进制、按列压缩存储；性能强悍，是一切的基础</td></tr>
+    <tr><td><b>ReplicatedMergeTree</b></td><td>在 MergeTree 基础上结合 <b>ZooKeeper</b> 实现副本复制，达成高可用</td></tr>
+    <tr><td><b>Distributed</b></td><td>自身<b>不存储数据</b>（类似视图/代理），把请求分发到集群各节点本地表，查询时“分发—汇聚”</td></tr>
+  </table>
+</section>
+
+<section id="s1412" class="detail">
+  <h1>1.4.12 本地表与分布式表</h1>
+  <table>
+    <tr><th>类型</th><th>说明</th></tr>
+    <tr><td><b>本地表（Local Table）</b></td><td>存储实际数据；通常一张本地表对应一个数据分片（shard）</td></tr>
+    <tr><td><b>分布式表（Distributed Table）</b></td><td>逻辑概念，自身不存数据，作为访问集群所有本地表的代理，类似分库分表中间件</td></tr>
+  </table>
+  <div class="diagram">
+    <div class="vflow">
+      <div class="box warnb"><b>分布式表 xxx_distribute</b>（逻辑入口，不存数据）</div>
+      <div class="arr">▼ 分发 / 汇聚 ▼</div>
+      <div class="hrow">
+        <div class="box alt">节点1<br>本地表 xxx_local</div>
+        <div class="box alt">节点2<br>本地表 xxx_local</div>
+        <div class="box alt">节点3<br>本地表 xxx_local</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s1413" class="detail">
+  <h1>1.4.13 分区 Partition</h1>
+  <ul>
+    <li>分区是对数据的<b>纵向切分</b>，在磁盘上以<b>目录</b>形式存在；</li>
+    <li>数据写入时按分区规则创建分区目录；<b>相同分区的数据才会被合并到同一目录，不同分区永远不会合并</b>；</li>
+    <li>分区<b>不解决数据在节点间的分布问题</b>（那是分片 shard 的职责）；</li>
+    <li>分区的主要价值：<b>缩小数据文件的扫描范围</b>，并便于按分区做删除/迁移/备份。</li>
+  </ul>
+  <pre><code>PARTITION BY toYYYYMM(create_time)   -- 按月分区
+PARTITION BY toYYYYMMDD(create_time) -- 按天
+PARTITION BY intHash32(user_id) % 10 -- 哈希分区</code></pre>
+</section>
+
+<section id="s1414" class="detail">
+  <h1>1.4.14 索引：稀疏索引与跳数索引</h1>
+  <p>ClickHouse 默认两类索引，均以 <b>granularity（粒度，默认 8192 行）</b>为单位生成。</p>
+  <h3>稀疏索引（一级索引，主键索引）</h3>
+  <ul>
+    <li>数据按主键排序后，每隔一个 granularity 取一个标记值保存；</li>
+    <li>索引文件很小，可常驻内存；通过稀疏标记快速<b>定位数据块的大致位置</b>，再顺序扫描该块。</li>
+  </ul>
+  <h3>跳数索引（二级索引 / skip index）</h3>
+  <ul>
+    <li>对每个 granularity 的数据做聚合（min/max、set 集合、bloom filter 等）；</li>
+    <li>查询时若条件与某粒度块的聚合信息不相交，则<b>整块跳过</b>，减少 I/O。</li>
+  </ul>
+  <pre><code>-- 跳数索引示例
+INDEX idx_name (column) TYPE minmax GRANULARITY 3;
+INDEX idx_bf (str_col) TYPE tokenbf_v1(2048,3,0) GRANULARITY 1;</code></pre>
+</section>
+
+<!-- ================= 第2章 ================= -->
+<section id="s211" class="detail">
+  <h1>2.1.1 集群 Cluster</h1>
+  <ul>
+    <li>集群用于解决<b>高可用与负载均衡</b>；</li>
+    <li>由多个节点组成，一个节点故障不影响整体正常使用；</li>
+    <li>集群拓扑在配置文件 <code>metrika.xml</code> 的 <code>&lt;remote_servers&gt;</code> 中定义。</li>
+  </ul>
+</section>
+
+<section id="s212" class="detail">
+  <h1>2.1.2 分片 Shard</h1>
+  <p>分片把一张表的数据水平切分到多个节点，每个节点只存一部分数据。</p>
+  <div class="diagram">
+    <p class="small" style="text-align:center">例：6 节点 = 6 分片；分布式表 6 条记录，各本地表分别存 A1/B1/C1/D1/E1/F1</p>
+    <div class="hrow">
+      <div class="box">分片1<br>A1</div><div class="box">分片2<br>B1</div><div class="box">分片3<br>C1</div>
+      <div class="box">分片4<br>D1</div><div class="box">分片5<br>E1</div><div class="box">分片6<br>F1</div>
+    </div>
+  </div>
+  <p>分片数决定数据容量与并行度上限；分片后查询在各分片并行执行再汇聚。</p>
+</section>
+
+<section id="s213" class="detail">
+  <h1>2.1.3 副本 Replica</h1>
+  <ul>
+    <li>一个分片可以配多个副本；<b>1 个分片 2 个副本 = 1 份数据的两个拷贝 = 数据备份</b>；</li>
+    <li>副本数（副本个数）不增加数据容量，只提升可用性与读并发；</li>
+    <li>副本同步由 <b>ReplicatedMergeTree + ZooKeeper</b> 自动完成。</li>
+  </ul>
+</section>
+
+<section id="s214" class="detail">
+  <h1>2.1.4 分布式读写流程</h1>
+  <h3>写入</h3>
+  <ul>
+    <li>写分布式表时，随机（或按分片键）规划到某一个分片的某个副本；</li>
+    <li>当 <code>internal_replication=true</code> 时，只写该副本，由其通过 ZK <b>自行把数据复制到同分片其他副本</b>。</li>
+  </ul>
+  <h3>读取</h3>
+  <ul>
+    <li>从各分片并行读取；每个分片优先选一个健康副本；</li>
+    <li>若某副本（如 A1）宕机，自动改读 A2，<b>不影响查询结果</b>；</li>
+    <li>各分片结果回到 Distributed 表汇聚后返回客户端。</li>
+  </ul>
+  <div class="ok">生产建议：<b>写本地表（批量）、读分布式表</b>，可显著降低 ZooKeeper 压力。</div>
+</section>
+
+<section id="s215" class="detail">
+  <h1>2.1.5 四种数据复制模式（internal_replication）</h1>
+  <table>
+    <tr><th>模式</th><th>行为</th><th>说明</th></tr>
+    <tr><td>分片+副本<br>internal_replication=false</td><td>Distributed 同时把数据写到该分片的所有副本</td><td>依赖 Distributed 复制；一旦中途某副本失败会造成副本不一致</td></tr>
+    <tr><td>分片+副本<br>internal_replication=true（推荐）</td><td>Distributed 只写一个副本，由 ReplicatedMergeTree 借助 ZK 自动复制</td><td><b>生产推荐</b>，副本一致性由引擎保证</td></tr>
+    <tr><td>纯分片（无副本）</td><td>每个分片只有一个节点，写入即落该节点</td><td>节点宕机即丢数据</td></tr>
+    <tr><td>写本地表</td><td>应用/负载层直接批量写各节点本地表，读走分布式表</td><td>官网与生产实践常用，压力最小</td></tr>
+  </table>
+</section>
+
+<section id="s221" class="detail">
+  <h1>2.2.1 方案1：纯分片（MergeTree + Distributed）</h1>
+  <p><b>优点：</b>架构简单，分布式并行查询快。</p>
+  <p><b>缺点：</b>分片节点宕机后，该分片数据丢失且无法恢复，查询直接报错。</p>
+  <p><b>适用：</b>测试环境、可重算的非核心数据。</p>
+  <h2>节点对应设计（3 分片 × 1 副本，最少 3 台）</h2>
+  <p>对应官网 3.4 节，集群 <b>xxcluster1</b>：每台机器一个分片，分片内只有自身一个副本；本地表 MergeTree + 分布式表 Distributed。</p>
+  <table>
+    <tr><th>节点</th><th>IP</th><th>分片 / 角色</th><th>端口</th></tr>
+    <tr><td>xxx81</td><td>192.168.1.81</td><td>分片1（唯一副本）：本地表 + Distributed 入口</td><td>9000</td></tr>
+    <tr><td>xxx82</td><td>192.168.1.82</td><td>分片2（唯一副本）：本地表 + Distributed 入口</td><td>9000</td></tr>
+    <tr><td>xxx83</td><td>192.168.1.83</td><td>分片3（唯一副本）：本地表 + Distributed 入口</td><td>9000</td></tr>
+    <tr><td>xxx84~86</td><td>192.168.1.84~86</td><td>本方案不使用（预留为扩容 / 副本节点）</td><td>—</td></tr>
+  </table>
+  <p><b>写入：</b>写分布式表，按分片键 rand() 随机落到其中一个分片；<b>故障域：</b>任一节点宕机 = 该分片数据不可查，查询直接报错。</p>
+</section>
+
+<section id="s222" class="detail">
+  <h1>2.2.2 方案2：分片 + 副本复制（MergeTree + Distributed）</h1>
+  <p><b>优点：</b>数据有备份，节点故障不影响查询；并行查询快。</p>
+  <p><b>缺点：</b>分片节点存储损坏、更换新节点后，<b>存量分片数据无法恢复</b>（新节点只接收新数据）；Distributed 组件自身可能故障。</p>
+  <p><b>适用：</b>过渡方案，非严格生产。</p>
+  <h2>节点对应设计（3 分片 × 2 副本，6 台，无需 ZooKeeper）</h2>
+  <p>对应官网 3.5 节，集群 <b>xxcluster3s2r02</b>：本地表仍为 MergeTree（非复制表），internal_replication=false，由 Distributed 引擎把写入同时下发到分片内所有副本。</p>
+  <table>
+    <tr><th>分片</th><th>副本1（本地表）</th><th>副本2（本地表）</th><th>分布式表</th></tr>
+    <tr><td>分片1</td><td>xxx81:9000</td><td>xxx82:9000</td><td rowspan="3">6 个节点均创建 Distributed 表，任一节点都可作为查询入口</td></tr>
+    <tr><td>分片2</td><td>xxx83:9000</td><td>xxx84:9000</td></tr>
+    <tr><td>分片3</td><td>xxx85:9000</td><td>xxx86:9000</td></tr>
+  </table>
+  <p><b>写入：</b>写分布式表 → 同一份数据被写入该分片的<b>所有副本本地表</b>（Distributed 双写）；<b>读取：</b>分布式表优先选健康副本，单副本宕机不报错。</p>
+  <div class="warn">副本同步完全依赖每次写入都走分布式表：直接写某台本地表会导致副本不一致；且新换节点的<b>存量数据无法自动补回</b>。</div>
+</section>
+
+<section id="s223" class="detail">
+  <h1>2.2.3 方案3：分片 + 副本 + 高可用（生产推荐）</h1>
+  <p>组成：<b>ReplicatedMergeTree + Distributed + ZooKeeper</b>。</p>
+  <p><b>优点：</b>多副本共享同一套 ZooKeeper，表结构与数据自动同步；数据安全，节点故障不影响读写；并行查询快。</p>
+  <p><b>缺点：</b>百万级写入会给 ZK 带来压力（建议写本地表、读分布式表）；可稳定保证每秒数百次插入；相比非复制表 INSERT 延迟略长。</p>
+  <div class="ok">官网与生产环境统一采用<b>方案3</b>。</div>
+  <h2>节点对应设计（3 分片 × 2 副本 + 5 节点 ZooKeeper）</h2>
+  <p>对应官网 3.6 节，集群 <b>xxcluster3s2r02</b>：本地表 ReplicatedMergeTree，internal_replication=true。</p>
+  <h3>ClickHouse 节点（6 台）</h3>
+  <table>
+    <tr><th>分片</th><th>副本1（IP / macros.replica）</th><th>副本2（IP / macros.replica）</th></tr>
+    <tr><td>分片1</td><td>xxx81:9000 ／ xxcluster3s2r02_01_01</td><td>xxx82:9000 ／ xxcluster3s2r02_01_02</td></tr>
+    <tr><td>分片2</td><td>xxx83:9000 ／ xxcluster3s2r02_02_01</td><td>xxx84:9000 ／ xxcluster3s2r02_02_02</td></tr>
+    <tr><td>分片3</td><td>xxx85:9000 ／ xxcluster3s2r02_03_01</td><td>xxx86:9000 ／ xxcluster3s2r02_03_02</td></tr>
+  </table>
+  <h3>ZooKeeper 节点（5 台，奇数过半）</h3>
+  <table>
+    <tr><th>myid</th><th>节点</th><th>客户端端口</th><th>部署说明</th></tr>
+    <tr><td>1</td><td>xxx81</td><td>32181</td><td rowspan="5">myid 1~5 依次部署；启动后自动选举 1 个 Leader、其余为 Follower</td></tr>
+    <tr><td>2</td><td>xxx82</td><td>32181</td></tr>
+    <tr><td>3</td><td>xxx83</td><td>32181</td></tr>
+    <tr><td>4</td><td>xxx84</td><td>32181</td></tr>
+    <tr><td>5</td><td>xxx85</td><td>32181</td></tr>
+  </table>
+  <p><b>macros：</b>layer=02 全集群相同；shard=01/02/03 按分片；replica 每节点唯一（命名规则 集群_分片_副本）。</p>
+  <p><b>写入：</b>写任一副本本地表，ReplicatedMergeTree 经 ZK 自动把 part 同步到另一副本；<b>读取：</b>分布式表自动路由健康副本；新换节点上线后自动从 ZK 协调补齐存量数据。</p>
+  <div class="note">官网环境为节省机器把 ZK 混部在 xxx81~85；严格生产建议 ZK 使用独立 3~5 台。</div>
+</section>
+
+<section id="s224" class="detail">
+  <h1>2.2.4 ZooKeeper 介绍</h1>
+  <p>ZooKeeper 是为分布式应用提供协调服务的框架，提供：<b>统一命名、状态同步、集群管理、配置管理</b>。</p>
+  <h3>三种角色</h3>
+  <table>
+    <tr><th>角色</th><th>职责</th></tr>
+    <tr><td>Leader</td><td>集群核心，事务请求（写）的唯一调度者，发起投票与决议</td></tr>
+    <tr><td>Follower</td><td>处理读请求，参与写事务投票与 Leader 选举</td></tr>
+    <tr><td>Observer</td><td>只处理读、不参与投票，用于扩展读能力（官网未使用）</td></tr>
+  </table>
+  <p>ClickHouse 中 ZK 负责：副本注册、数据块（part）同步协调、变更通知、ON CLUSTER DDL 协调。</p>
+</section>
+
+<section id="s225" class="detail">
+  <h1>2.2.5 生产环境最优架构</h1>
+  <div class="diagram">
+    <div class="layers">
+      <div class="layer l1"><b>客户端 / 应用层</b>（报表、可视化、业务系统）</div>
+      <div class="layer l2"><b>chproxy 负载层</b>（2+ 节点，端口 9090；负载均衡、并发控制、用户映射）</div>
+      <div class="layer l3"><b>ClickHouse 集群</b>：ReplicatedMergeTree 本地表 + Distributed 分布式表<br>
+        <span class="small">分片1 A+B · 分片2 C+D · 分片3 E+F（每分片 2 副本，跨机柜）</span></div>
+      <div class="layer l4"><b>ZooKeeper 集群</b>（3~5 节点，端口 32181）</div>
+    </div>
+  </div>
+</section>
+
+<section id="s226" class="detail">
+  <h1>2.2.6 生产部署要点清单</h1>
+  <ul>
+    <li>统一采用方案3；副本数 ≥ 2（2 份数据），跨主机/机柜部署；</li>
+    <li>写入借助外部负载（chproxy 分发 / 直接写本地表），读走分布式表，统一管理；</li>
+    <li>并发查询数十到 100；写入要<b>批量</b>，避免小批量导致过多 merge 而性能下降；</li>
+    <li>一台主机不建议多实例（CPU 能跑满时收益低）；</li>
+    <li>ZooKeeper 独立建设 3~5 节点；</li>
+    <li>硬件：CPU 48 核、内存 128G/192G、SSD RAID5/10、数据盘 1TB~40TB；</li>
+    <li>一个业务对应一个集群，单集群节点数不宜过多。</li>
+  </ul>
+</section>
+
+<!-- ================= 第3章 ================= -->
+<section id="s31" class="detail">
+  <h1>3.1 Linux 环境准备（CentOS 7）</h1>
+  <h2>主机名解析</h2>
+  <pre><code>cat >> /etc/hosts <<EOF
+192.168.1.81 xxx81
+192.168.1.82 xxx82
+192.168.1.83 xxx83
+192.168.1.84 xxx84
+192.168.1.85 xxx85
+192.168.1.86 xxx86
+EOF</code></pre>
+  <h2>数据盘 LVM（可选，破坏性操作）</h2>
+  <div class="warn">LVM 会格式化整块磁盘，请确认盘内无数据；不使用 LVM 可直接跳过，把数据目录建在系统盘。</div>
+  <pre><code>yum install -y lvm2
+pvcreate /dev/sdb
+vgcreate datavg /dev/sdb
+lvcreate -n datalv -L 200000M datavg
+mkfs.ext4 /dev/datavg/datalv
+mkdir /clickhouse
+echo '/dev/datavg/datalv /clickhouse ext4 defaults,nobarrier,noatime 0 0' >> /etc/fstab
+mount /clickhouse</code></pre>
+  <h2>用户与目录</h2>
+  <pre><code>groupadd -g 60001 clickhouse
+useradd -u 61001 -g clickhouse -m -s /bin/bash clickhouse
+passwd clickhouse
+mkdir -p /clickhouse/{soft,app,data,log,etc}
+chown -R clickhouse:clickhouse /clickhouse
+chmod 775 /clickhouse</code></pre>
+  <h2>资源限制 limits</h2>
+  <pre><code>cat >> /etc/security/limits.conf <<EOF
+root soft nofile 1048576
+root hard nofile 1048576
+clickhouse soft nproc 1048576
+clickhouse hard nproc 1048576
+clickhouse soft nofile 1048576
+clickhouse hard nofile 1048576
+clickhouse soft stack 10240
+clickhouse hard stack 32768
+clickhouse hard memlock unlimited
+clickhouse soft memlock unlimited
+EOF</code></pre>
+  <h2>内核参数 sysctl</h2>
+  <pre><code>cat >> /etc/sysctl.conf <<EOF
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+net.ipv4.ip_local_port_range = 10000 65535
+net.ipv4.tcp_mem = 786432 2097152 3145728
+net.ipv4.tcp_rmem = 4096 4096 16777216
+net.ipv4.tcp_wmem = 4096 4096 16777216
+vm.swappiness = 1
+vm.min_free_kbytes = 204800
+vm.overcommit_memory = 0
+EOF
+sysctl -p</code></pre>
+  <h2>SELinux / 防火墙 / 透明大页</h2>
+  <pre><code># SELinux 关闭
+sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+setenforce 0
+# firewalld 关闭
+systemctl stop firewalld; systemctl disable firewalld
+# 透明大页 THP=never
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+cat >> /etc/rc.d/rc.local <<EOF
+if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+fi
+if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+fi
+EOF
+chmod +x /etc/rc.d/rc.local</code></pre>
+  <p>以上全部步骤都已由 <code>clickhouse_install.sh</code> 自动幂等完成。</p>
+</section>
+
+<section id="s32" class="detail">
+  <h1>3.2 单机环境安装</h1>
+  <h2>安装包（放 /clickhouse/soft）</h2>
+  <pre><code>clickhouse-common-static-20.11.4.13.tgz      # 基础二进制（clickhouse 主程序）
+clickhouse-common-static-dbg-20.11.4.13.tgz  # 调试信息（可选）
+clickhouse-server-20.11.4.13.tgz             # 服务端（配置文件、服务脚本）
+clickhouse-client-20.11.4.13.tgz             # 客户端</code></pre>
+  <h2>安装顺序</h2>
+  <pre><code>cd /clickhouse/app
+tar zxf /clickhouse/soft/clickhouse-common-static-20.11.4.13.tgz
+./clickhouse-common-static/install/doinst.sh
+tar zxf /clickhouse/soft/clickhouse-common-static-dbg-20.11.4.13.tgz
+./clickhouse-common-static-dbg/install/doinst.sh
+tar zxf /clickhouse/soft/clickhouse-server-20.11.4.13.tgz
+# 可在 doinst.sh 中设置 CLICKHOUSE_DATADIR=/clickhouse/data、CLICKHOUSE_LOGDIR=/clickhouse/log
+./clickhouse-server/install/doinst.sh
+tar zxf /clickhouse/soft/clickhouse-client-20.11.4.13.tgz
+./clickhouse-client/install/doinst.sh</code></pre>
+  <h2>server 关键配置（config.xml）</h2>
+  <pre><code>&lt;logger&gt;
+  &lt;log&gt;/clickhouse/log/clickhouse-server.log&lt;/log&gt;
+  &lt;errorlog&gt;/clickhouse/log/clickhouse-server.err.log&lt;/errorlog&gt;
+&lt;/logger&gt;
+&lt;http_port&gt;8123&lt;/http_port&gt;
+&lt;tcp_port&gt;9000&lt;/tcp_port&gt;
+&lt;interserver_http_port&gt;9009&lt;/interserver_http_port&gt;
+&lt;path&gt;/clickhouse/data/&lt;/path&gt;
+&lt;tmp_path&gt;/clickhouse/data/tmp/&lt;/tmp_path&gt;
+&lt;user_files_path&gt;/clickhouse/data/user_files/&lt;/user_files_path&gt;
+&lt;local_directory&gt;&lt;path&gt;/clickhouse/data/access/&lt;/path&gt;&lt;/local_directory&gt;
+&lt;listen_host&gt;::&lt;/listen_host&gt;   &lt;!-- 监听全部地址；默认只监听本机 --&gt;</code></pre>
+  <h2>users.xml 关键配置</h2>
+  <pre><code>&lt;profiles&gt;&lt;default&gt;
+  &lt;timezone&gt;Asia/Shanghai&lt;/timezone&gt;
+&lt;/default&gt;&lt;/profiles&gt;
+&lt;users&gt;&lt;default&gt;
+  &lt;access_management&gt;1&lt;/access_management&gt;   &lt;!-- 允许 SQL 方式建用户/授权 --&gt;
+&lt;/default&gt;&lt;/users&gt;</code></pre>
+  <h2>配置目录迁移与软链</h2>
+  <pre><code>mv /etc/clickhouse-server /clickhouse/etc/
+ln -s /clickhouse/etc/clickhouse-server /etc/clickhouse-server
+mv /etc/clickhouse-client /clickhouse/etc/
+ln -s /clickhouse/etc/clickhouse-client /etc/clickhouse-client
+chown -R clickhouse:clickhouse /clickhouse
+chmod -R 755 /clickhouse</code></pre>
+  <h2>systemd 服务</h2>
+  <pre><code>cat > /etc/systemd/system/clickhouse-server.service <<EOF
+[Unit]
+Description=ClickHouse Server (analytic DBMS for big data)
+Requires=network-online.target
+After=network-online.target
+[Service]
+Type=simple
+User=clickhouse
+Group=clickhouse
+Restart=always
+RestartSec=30
+ExecStart=/usr/bin/clickhouse-server --config=/etc/clickhouse-server/config.xml --pid-file=/etc/clickhouse-server/clickhouse-server.pid
+LimitCORE=infinity
+LimitNOFILE=500000
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable --now clickhouse-server</code></pre>
+  <h2>登录</h2>
+  <pre><code>clickhouse-client -h 127.0.0.1 --port 9000 --user default
+SELECT version();</code></pre>
+</section>
+
+<section id="s33" class="detail">
+  <h1>3.3 多实例环境安装（同机 9000 + 9200）</h1>
+  <ol>
+    <li>复制配置：<code>cp /etc/clickhouse-server/config.xml /etc/clickhouse-server/config9200.xml</code></li>
+    <li>修改 config9200.xml 中的端口与路径：</li>
+  </ol>
+  <pre><code>&lt;http_port&gt;8224&lt;/http_port&gt;
+&lt;tcp_port&gt;9200&lt;/tcp_port&gt;
+&lt;mysql_port&gt;9204&lt;/mysql_port&gt;
+&lt;interserver_http_port&gt;9209&lt;/interserver_http_port&gt;
+&lt;path&gt;/clickhouse/data9200/&lt;/path&gt;
+&lt;tmp_path&gt;/clickhouse/data9200/tmp/&lt;/tmp_path&gt;
+&lt;user_files_path&gt;/clickhouse/data9200/user_files/&lt;/user_files_path&gt;
+&lt;local_directory&gt;&lt;path&gt;/clickhouse/data9200/access/&lt;/path&gt;&lt;/local_directory&gt;
+&lt;logger&gt;
+  &lt;log&gt;/clickhouse/log9200/clickhouse-server.log&lt;/log&gt;
+  &lt;errorlog&gt;/clickhouse/log9200/clickhouse-server.err.log&lt;/errorlog&gt;
+&lt;/logger&gt;</code></pre>
+  <p>建立数据/日志目录：<code>mkdir -p /clickhouse/data9200 /clickhouse/log9200</code> 并 chown。</p>
+  <p>启动第二实例（独立 systemd 服务 clickhouse-server9200，或用启动脚本）：</p>
+  <pre><code>/usr/bin/clickhouse-server --config=/etc/clickhouse-server/config9200.xml \
+  --pid-file=/etc/clickhouse-server/clickhouse9200.pid
+# 校验
+clickhouse-client -h 127.0.01 --port 9200 -q "SELECT version()"</code></pre>
+  <div class="note">一键方式：<code>MULTI_INSTANCE=true ./clickhouse_install.sh install</code></div>
+</section>
+
+<section id="s34" class="detail">
+  <h1>3.4 集群节点环境配置</h1>
+  <h2>节点准备的 3 种方式</h2>
+  <ol>
+    <li>每台节点逐一安装（最稳但慢）；</li>
+    <li>克隆虚拟机（改 IP/主机名）；</li>
+    <li><b>复制目录（官网采用）</b>：把 81 的 /clickhouse 与相关配置复制到 82~86。</li>
+  </ol>
+  <h2>metrika.xml 与 include_from</h2>
+  <p>集群拓扑、ZK、分片宏统一写在 <code>/etc/clickhouse-server/metrika.xml</code>，并在 config.xml 引入：</p>
+  <pre><code>&lt;include_from&gt;/etc/clickhouse-server/metrika.xml&lt;/include_from&gt;</code></pre>
+  <h2>复制到其他节点</h2>
+  <pre><code>for i in 82 83 84 85 86; do
+  scp -r /clickhouse xxx$i:/
+  scp /etc/systemd/system/clickhouse-server.service xxx$i:/etc/systemd/system/
+done
+# 各节点
+systemctl daemon-reload
+systemctl start clickhouse-server</code></pre>
+  <h2>批量登录/复制辅助脚本（官网提供）</h2>
+  <pre><code># cklogin 主机名  —— 自动 ssh 到 xxxXX
+# ckscp 本地文件 主机名 —— 自动 scp 到 xxxXX:/root
+cat > /usr/local/bin/cklogin <<'EOF'
+#!/bin/bash
+ssh root@xxx$1
+EOF
+cat > /usr/local/bin/ckscp <<'EOF'
+#!/bin/bash
+scp $1 root@xxx$2:/root
+EOF
+chmod +x /usr/local/bin/cklogin /usr/local/bin/ckscp</code></pre>
+</section>
+
+<section id="s35" class="detail">
+  <h1>3.5 集群分片（MergeTree + Distributed）</h1>
+  <h2>MergeTree 建表语法</h2>
+  <pre><code>CREATE TABLE [db.]table_name [ON CLUSTER cluster] (
+    name1 [type1] [DEFAULT|MATERIALIZED|ALIAS expr1] [compression_codec] [TTL ...],
+    name2 [type2] ...,
+    INDEX index_name1 expr1 TYPE type1(...) GRANULARITY value1
+) ENGINE = MergeTree()
+ORDER BY expr
+[PARTITION BY expr] [PRIMARY KEY expr] [SAMPLE BY expr]
+[SETTINGS name=value, ...];</code></pre>
+  <table>
+    <tr><th>关键字</th><th>含义</th></tr>
+    <tr><td>ENGINE</td><td>存储引擎，MergeTree 系列</td></tr>
+    <tr><td>ORDER BY</td><td>排序键（必填），决定数据排序与稀疏索引；无主键时主键默认=排序键</td></tr>
+    <tr><td>PARTITION BY</td><td>分区键，按月/天/哈希，缩小扫描范围</td></tr>
+    <tr><td>PRIMARY KEY</td><td>主键，与排序键区分（一般与 ORDER BY 一致）</td></tr>
+    <tr><td>SAMPLE BY</td><td>采样表达式，用于数据抽样</td></tr>
+    <tr><td>SETTINGS</td><td>引擎参数，如 index_granularity=8192</td></tr>
+  </table>
+  <h2>Distributed 引擎语法</h2>
+  <pre><code>Distributed(cluster_name, database, table [, sharding_key [, policy_name]])</code></pre>
+  <h2>分片规则（sharding_key）</h2>
+  <pre><code>-- 不指定分片键：默认只写到一个分片
+-- 按字段：Distributed(cluster, db, table, userId)
+-- 随机：  sharding_key = rand()
+-- 哈希：  intHash64(userId)
+-- 分片权重 &lt;weight&gt; 影响数据分配比例</code></pre>
+  <h2>分布式 DDL（需 ZooKeeper）</h2>
+  <pre><code>CREATE DATABASE xxxdb ON CLUSTER xxcluster1;
+CREATE TABLE xxxdb.ontime_local ON CLUSTER xxcluster1 (...) ENGINE=MergeTree() ...;</code></pre>
+  <h2>ontime （本地表 + 分布式表）</h2>
+  <pre><code>CREATE TABLE xxxdb.ontime_local (
+    id Int32, name String, create_date Date
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(create_date)
+ORDER BY (create_date, intHash32(id));
+
+CREATE TABLE xxxdb.ontime_all AS xxxdb.ontime_local
+ENGINE = Distributed(xxcluster1, xxxdb, ontime_local, rand());
+
+-- 导入数据（可从 URL 直接导入）
+INSERT INTO xxxdb.ontime_local SELECT * FROM url('http://.../data.tsv', TSV, 'id Int32,...');</code></pre>
+  <h2>性能对比 SQL</h2>
+  <pre><code>SELECT count(*) FROM xxxdb.ontime_local;   -- 单分片
+SELECT count(*) FROM xxxdb.ontime_all;     -- 全分片并行
+SELECT * FROM system.clusters;</code></pre>
+</section>
+
+<section id="s36" class="detail">
+  <h1>3.6 分片副本复制（方案3 拓扑）</h1>
+  <h2>节点规划（3 分片 × 2 副本 + 5 ZK）</h2>
+  <table>
+    <tr><th>分片</th><th>副本1</th><th>副本2</th><th>ZK</th></tr>
+    <tr><td>分片1</td><td>xxx81:9000</td><td>xxx82:9000</td><td>81/82/83/84/85</td></tr>
+    <tr><td>分片2</td><td>xxx83:9000</td><td>xxx84:9000</td><td></td></tr>
+    <tr><td>分片3</td><td>xxx85:9000</td><td>xxx86:9000</td><td></td></tr>
+  </table>
+  <h2>metrika.xml（核心配置）</h2>
+  <pre><code>&lt;yandex&gt;
+  &lt;clickhouse_remote_servers&gt;
+    &lt;xxcluster3s2r02&gt;
+      &lt;shard&gt;
+        &lt;weight&gt;1&lt;/weight&gt;
+        &lt;internal_replication&gt;true&lt;/internal_replication&gt;
+        &lt;replica&gt;&lt;host&gt;xxx81&lt;/host&gt;&lt;port&gt;9000&lt;/port&gt;&lt;/replica&gt;
+        &lt;replica&gt;&lt;host&gt;xxx82&lt;/host&gt;&lt;port&gt;9000&lt;/port&gt;&lt;/replica&gt;
+      &lt;/shard&gt;
+      &lt;!-- 分片2: 83+84；分片3: 85+86，结构相同 --&gt;
+    &lt;/xxcluster3s2r02&gt;
+  &lt;/clickhouse_remote_servers&gt;
+  &lt;zookeeper-servers&gt;
+    &lt;node index="1"&gt;&lt;host&gt;xxx81&lt;/host&gt;&lt;port&gt;32181&lt;/port&gt;&lt;/node&gt;
+    &lt;node index="2"&gt;&lt;host&gt;xxx82&lt;/host&gt;&lt;port&gt;32181&lt;/port&gt;&lt;/node&gt;
+    &lt;node index="3"&gt;&lt;host&gt;xxx83&lt;/host&gt;&lt;port&gt;32181&lt;/port&gt;&lt;/node&gt;
+    &lt;node index="4"&gt;&lt;host&gt;xxx84&lt;/host&gt;&lt;port&gt;32181&lt;/port&gt;&lt;/node&gt;
+    &lt;node index="5"&gt;&lt;host&gt;xxx85&lt;/host&gt;&lt;port&gt;32181&lt;/port&gt;&lt;/node&gt;
+  &lt;/zookeeper-servers&gt;
+  &lt;macros&gt;
+    &lt;layer&gt;02&lt;/layer&gt;
+    &lt;shard&gt;01&lt;/shard&gt;  &lt;!-- 每台节点不同：01/01, 01/02, 02/01 ... --&gt;
+    &lt;replica&gt;xxcluster3s2r02_01_01&lt;/replica&gt;
+  &lt;/macros&gt;
+  &lt;networks&gt;&lt;ip&gt;::/0&lt;/ip&gt;&lt;/networks&gt;
+  &lt;clickhouse_compression&gt;
+    &lt;case&gt;
+      &lt;min_part_size&gt;10000000000&lt;/min_part_size&gt;
+      &lt;min_part_size_ratio&gt;0.01&lt;/min_part_size_ratio&gt;
+      &lt;method&gt;lz4&lt;/method&gt;
+    &lt;/case&gt;
+  &lt;/clickhouse_compression&gt;
+&lt;/yandex&gt;</code></pre>
+  <p>每台节点只需修改 <code>&lt;macros&gt;</code> 中的 shard / replica（对照部署说明第四节表格）。</p>
+</section>
+
+<section id="s37" class="detail">
+  <h1>3.7 分片副本高可用（ReplicatedMergeTree）</h1>
+  <h2>JDK 安装（ZK 依赖）</h2>
+  <pre><code>cd /clickhouse
+tar zxf /clickhouse/soft/jdk-8u261-linux-x64.tar.gz
+cat >> /etc/profile <<'EOF'
+export JAVA_HOME=/clickhouse/jdk1.8.0_261
+export PATH=$JAVA_HOME/bin:$PATH
+EOF
+source /etc/profile; java -version</code></pre>
+  <h2>ZooKeeper 安装</h2>
+  <pre><code>cd /clickhouse/app
+tar zxf /clickhouse/soft/apache-zookeeper-3.6.2.tar.gz
+mv apache-zookeeper-3.6.2 zookeeper
+mkdir -p /clickhouse/zookeeper/{data,log}
+cp conf/zoo_sample.cfg conf/zoo.cfg</code></pre>
+  <pre><code># zoo.cfg 关键项
+tickTime=2000
+initLimit=30000
+syncLimit=10
+maxClientCnxns=2000
+autopurge.snapRetainCount=10
+autopurge.purgeInterval=1
+dataDir=/clickhouse/zookeeper/data
+dataLogDir=/clickhouse/zookeeper/log
+clientPort=32181
+server.1=192.168.1.81:2888:3888
+server.2=192.168.1.82:2888:3888
+server.3=192.168.1.83:2888:3888
+server.4=192.168.1.84:2888:3888
+server.5=192.168.1.85:2888:3888</code></pre>
+  <pre><code># 每台节点写 myid（81~85 分别 1~5）
+echo 1 > /clickhouse/zookeeper/data/myid
+# JVM 堆（zkEnv.sh），不要超过 32G
+ZK_SERVER_HEAP=1000
+# 启动 / 状态（Quorum 满足后自动选举）
+bin/zkServer.sh start; bin/zkServer.sh status</code></pre>
+  <h2>复制表建表（关键）</h2>
+  <pre><code>CREATE TABLE xxxdb.ontime_local2 ON CLUSTER xxcluster3s2r02 (
+    id Int32, name String, create_date Date
+) ENGINE = ReplicatedReplacingMergeTree(
+        '/clickhouse/tables/{layer}-{shard}/ontime_local2', '{replica}')
+PARTITION BY toYYYYMM(create_date)
+ORDER BY (create_date, intHash32(id));
+
+CREATE TABLE xxxdb.ontime_all2 ON CLUSTER xxcluster3s2r02 AS xxxdb.ontime_local2
+ENGINE = Distributed(xxcluster3s2r02, xxxdb, ontime_local2, rand());</code></pre>
+  <ul>
+    <li>第一个参数是 ZK 上的副本路径（同分片两副本路径相同），第二个参数是本副本标识；</li>
+    <li>宏 <code>{layer}{shard}{replica}</code> 自动从 metrika.xml 的 macros 替换；</li>
+    <li>写一个副本，ZK 自动把 part 同步到另一副本。</li>
+  </ul>
+  <h2>验证</h2>
+  <pre><code>INSERT INTO xxxdb.ontime_local2 VALUES (1,'xxx','2020-12-01');
+SELECT * FROM xxxdb.ontime_local2;   -- 两副本均可见
+SELECT count(*) FROM xxxdb.ontime_all2;
+SELECT * FROM system.replicas;</code></pre>
+</section>
+
+<section id="s38" class="detail">
+  <h1>3.8 生产集群节点扩容</h1>
+  <h2>扩容规划（新增 9200 实例形成新分片）</h2>
+  <table>
+    <tr><th>节点</th><th>角色</th></tr>
+    <tr><td>81~85</td><td>ZooKeeper（已有）</td></tr>
+    <tr><td>81+84（9200）</td><td>新分片4 两副本</td></tr>
+    <tr><td>82+85（9200）</td><td>新分片5 两副本</td></tr>
+    <tr><td>83+86（9200）</td><td>新分片6 两副本</td></tr>
+  </table>
+  <h2>metrika9200.xml 增加分片</h2>
+  <pre><code>&lt;!-- remote_servers 中追加 shard 4/5/6，端口 9200 --&gt;
+&lt;shard&gt;
+  &lt;internal_replication&gt;true&lt;/internal_replication&gt;
+  &lt;replica&gt;&lt;host&gt;xxx81&lt;/host&gt;&lt;port&gt;9200&lt;/port&gt;&lt;/replica&gt;
+  &lt;replica&gt;&lt;host&gt;xxx84&lt;/host&gt;&lt;port&gt;9200&lt;/port&gt;&lt;/replica&gt;
+&lt;/shard&gt;
+&lt;!-- shard5: 82+85；shard6: 83+86 --&gt;</code></pre>
+  <h2>用户与角色（SQL 方式，官网案例）</h2>
+  <pre><code>CREATE ROLE analysisRole;
+GRANT SELECT ON xxxdb.* TO analysisRole;
+CREATE USER xxx IDENTIFIED WITH sha256_password BY 'xxx';
+GRANT analysisRole TO xxx;
+-- 登录
+clickhouse-client -h xxx81 -u xxx --password xxx</code></pre>
+  <h2>扩容后建表与性能对比</h2>
+  <pre><code>CREATE TABLE xxxdb.xxx_local2 (...) ENGINE=ReplicatedReplacingMergeTree(...) ...;
+CREATE TABLE xxxdb.xxx_all2 AS xxxdb.xxx_local2
+ENGINE = Distributed(xxcluster6s,...);
+-- 6 分片并行 vs 3 分片
+SELECT count(*) FROM xxxdb.xxx_all2;</code></pre>
+</section>
+
+<section id="s39" class="detail">
+  <h1>3.9 版本升级（20.11.4.13 → 20.11.5.18）</h1>
+  <h2>升级步骤（逐台滚动升级）</h2>
+  <pre><code># 1. 停止当前实例（多实例则两个进程都停）
+systemctl stop clickhouse-server
+ps -ef | grep clickhouse
+
+# 2. 备份程序与配置（数据目录不动）
+cp -a /clickhouse/app /clickhouse/app.bak_$(date +%F)
+cp -a /clickhouse/etc /clickhouse/etc.bak_$(date +%F)
+
+# 3. 解压新版本 common / server，执行 doinst（覆盖二进制与配置模板）
+tar zxf clickhouse-common-static-20.11.5.18.tgz -C /clickhouse/app
+/clickhouse/app/clickhouse-common-static-20.11.5.18/install/doinst.sh
+tar zxf clickhouse-server-20.11.5.18.tgz -C /clickhouse/app
+/clickhouse/app/clickhouse-server-20.11.5.18/install/doinst.sh
+
+# 4. 启动并校验
+systemctl start clickhouse-server
+clickhouse-client -q "SELECT version()";
+
+# 5. 异常则用备份回滚（mv 回 app/etc），再启动
+# 6. 一台成功后再升级下一台，保证集群始终有副本在线</code></pre>
+  <div class="warn">升级期间不要跨大版本直接跳；先在测试环境验证；复制表要求各副本版本兼容。</div>
+</section>
+
+<section id="s310" class="detail">
+  <h1>3.10 负载分发（chproxy）</h1>
+  <h2>安装</h2>
+  <pre><code>mkdir -p /clickhouse/chproxy
+tar xzf chproxy-linux-amd64-v1.14.0.tar.gz -C /clickhouse/chproxy
+chmod +x /clickhouse/chproxy/chproxy</code></pre>
+  <h2>config.yml（完整模板）</h2>
+  <pre><code>server:
+  http:
+      listen_addr: ":9090"
+      allowed_networks: ["192.168.0.0/16"]
+  https:
+      listen_addr: ":443"
+      autocert:
+          cache_dir: ".certs"
+log_dir: "/clickhouse/log/chproxy"
+cache:
+  filesystem:
+      dir: "/clickhouse/chproxy/cache"
+      max_size: 150MB
+  expire_time: 30m
+ providers:
+  - name: cluster-provider
+    clusters:
+      - name: chcluster
+        nodes: ["192.168.1.81:8123","192.168.1.82:8123","192.168.1.83:8123"]
+        users:
+          - name: default
+            password: ""
+clusters:
+  - name: chcluster
+    replicas:
+      - name: replica1
+        shards:
+          - name: shard1
+            replicas:
+              - name: replica1
+                host: "192.168.1.81:8123"
+users:
+  - name: replica-write
+    password: "123456"
+    to_cluster: chcluster
+    to_user: default
+  - name: distributed-write
+    password: "123456"
+    to_cluster: chcluster
+    to_user: default
+  - name: distributed-read
+    password: "123456"
+    to_cluster: chcluster
+    to_user: default</code></pre>
+  <h2>启动与验证</h2>
+  <pre><code>/clickhouse/chproxy/chproxy -config=/clickhouse/chproxy/config.yml
+# 或 nohup 后台：
+nohup /clickhouse/chproxy/chproxy -config=/clickhouse/chproxy/config.yml \
+  > /clickhouse/log/chproxy.log 2>&1 &
+curl -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'user=distributed-read&password=123456' http://192.168.1.81:9090/</code></pre>
+  <h2>读写测试</h2>
+  <pre><code># 写本地表（replica-write）
+curl 'http://192.168.1.81:9090/?user=replica-write&password=123456' \
+  -d "INSERT INTO xxxdb.ontime_local VALUES (1,'xxx','2020-12-01')"
+# 写分布式表（distributed-write）
+curl 'http://192.168.1.81:9090/?user=distributed-write&password=123456' \
+  -d "INSERT INTO xxxdb.ontime_all VALUES (2,'xxx','2020-12-01')"
+# 读分布式表（distributed-read）
+curl 'http://192.168.1.81:9090/?user=distributed-read&password=123456' \
+  -d "SELECT count(*) FROM xxxdb.ontime_all"</code></pre>
+</section>
+
+<!-- ================= 第4章 ================= -->
+<section id="s41" class="detail">
+  <h1>4.1 客户端使用</h1>
+  <h2>命令行 clickhouse-client</h2>
+  <pre><code>clickhouse-client -h 127.0.0.1 --port 9000 --user default
+clickhouse-client -q "SELECT version()"
+clickhouse-client --multiquery -q "USE db; SELECT count(*) FROM t;"</code></pre>
+  <h2>MySQL 协议（9004）</h2>
+  <pre><code>mysql -h 127.0.0.1 -P 9004 -u default</code></pre>
+  <h2>DBeaver（JDBC）</h2>
+  <ul>
+    <li>驱动下载：<code>https://clickhouse.tech/jdbc/</code>（clickhouse-jdbc-*-shaded.jar）</li>
+    <li>DBeaver 新建 ClickHouse 连接，端口 8123(HTTP) 或 9000(TCP，按驱动)；</li>
+    <li>默认账号 default / 空密码（仅限本机）。</li>
+  </ul>
+  <h2>HTTP 接口（8123）</h2>
+  <pre><code>curl 'http://127.0.0.1:8123/?query=SELECT+version()'
+curl 'http://127.0.0.1:8123/' --data-binary 'SELECT 1'
+curl -u user:pass 'http://host:8123/' --data-binary 'SHOW DATABASES'</code></pre>
+</section>
+
+<section id="s42" class="detail">
+  <h1>4.2 官方数据 POC 测试（ontime 航班数据）</h1>
+  <h2>加载数据（按月分区，批量导入）</h2>
+  <pre><code>for m in 01 02 03 04 05 06 07 08 09 10 11 12; do
+  clickhouse-client --query "INSERT INTO datasets.ontime FORMAT TSVWithNames" \
+    < <(curl -s "https://transtats.bts.gov/PREZIP/On_Time_Reporting_Carrier_On_Time_Performance_1987_present_2019_$m.zip" \
+      | funzip)
+done</code></pre>
+  <h2>压缩率查询</h2>
+  <pre><code>SELECT
+  formatReadableSize(sum(data_compressed_bytes)) AS compressed,
+  formatReadableSize(sum(data_uncompressed_bytes)) AS uncompressed,
+  round(sum(data_uncompressed_bytes)/sum(data_compressed_bytes),2) AS ratio
+FROM system.columns WHERE database='datasets' AND table='ontime';</code></pre>
+  <h2>分区信息</h2>
+  <pre><code>SELECT
+  partition, count() AS parts,
+  formatReadableSize(sum(bytes_on_disk)) AS size,
+  min(min_date), max(max_date), sum(rows)
+FROM system.parts
+WHERE database='datasets' AND table='ontime' AND active
+GROUP BY partition ORDER BY partition;</code></pre>
+  <h2>典型分析 SQL</h2>
+  <pre><code>SELECT DayOfWeek, count() AS c
+FROM datasets.ontime WHERE Year=2019 GROUP BY DayOfWeek ORDER BY c DESC;
+
+SELECT Carrier, bar(count(),0,(SELECT count() FROM datasets.ontime),60)
+FROM datasets.ontime WHERE Year=2019 GROUP BY Carrier;
+
+SELECT Origin, avg(DepDelay>60)*100 AS p
+FROM datasets.ontime WHERE Year=2019 GROUP BY Origin HAVING count()>10000
+ORDER BY p DESC LIMIT 10;</code></pre>
+</section>
+
+<section id="s43" class="detail">
+  <h1>4.3 配置文件管理</h1>
+  <table>
+    <tr><th>文件</th><th>内容</th></tr>
+    <tr><td><b>config.xml</b></td><td>路径、端口、主机名、内存限制、日志、监听地址等服务级配置</td></tr>
+    <tr><td><b>metrika.xml</b></td><td>集群拓扑 remote_servers、ZooKeeper、分片宏 macros（include_from 引入）</td></tr>
+    <tr><td><b>users.xml</b></td><td>用户、密码、网络、profile 配置、quota 配额</td></tr>
+  </table>
+  <p>推荐用 <code>config.d/*.xml</code>、<code>users.d/*.xml</code> 做覆盖，不改主文件。</p>
+  <h2>set 命令（会话/全局参数）</h2>
+  <pre><code>SET max_memory_usage = 10000000000;
+SET max_threads = 8;
+SET profile = 'default';
+SELECT name, value, changed FROM system.settings WHERE changed;</code></pre>
+</section>
+
+<section id="s44" class="detail">
+  <h1>4.4 用户权限管理</h1>
+  <h2>CREATE USER 语法</h2>
+  <pre><code>CREATE USER [IF NOT EXISTS | OR REPLACE] name1 [ON CLUSTER cluster]
+  IDENTIFIED WITH [plaintext_password|sha256_password|double_sha1_password] BY 'value'
+  HOST LOCAL | HOST NAME 'name' | HOST IP 'ip'
+  DEFAULT ROLE role [SETTINGS ...]</code></pre>
+  <h2>GRANT 语法与权限分类</h2>
+  <pre><code>GRANT [ON CLUSTER cluster] privilege[(columns)] [ON {db.table|db.*|*.*}] TO user [WITH GRANT OPTION]
+REVOKE ... FROM user;</code></pre>
+  <table>
+    <tr><th>类别</th><th>权限</th></tr>
+    <tr><td>读</td><td>SELECT, SHOW DATABASES/TOW TABLES, EXISTS</td></tr>
+    <tr><td>写</td><td>INSERT, ALTER UPDATE/DELETE</td></tr>
+    <tr><td>DDL</td><td>CREATE/DROP/RENAME/ALTER TABLE, CREATE/DROP DATABASE</td></tr>
+    <tr><td>其他</td><td>TRUNCATE, OPTIMIZE, KILL QUERY, dictGet, SYSTEM, ALL</td></tr>
+  </table>
+  <h2>角色（Role）</h2>
+  <pre><code>CREATE ROLE role;
+GRANT SELECT ON db.* TO role;
+GRANT role TO user;
+SET ROLE role;
+SELECT * FROM system.users; SELECT * FROM system.roles;</code></pre>
+  <h2>DBA 管理账号案例</h2>
+  <pre><code>CREATE USER admin IDENTIFIED WITH sha256_password BY 'Admin@123' HOST ANY;
+GRANT ALL ON *.* TO admin WITH GRANT OPTION;</code></pre>
+  <h2>密码三种方式与生成</h2>
+  <pre><code># 明文（仅测试）
+IDENTIFIED WITH plaintext_password BY '123456'
+# SHA256（推荐）
+PASSWORD=$(echo -n '123456' | sha256sum | awk '{print $1}')
+IDENTIFIED WITH sha256_password BY 'PASSWORD_HASH'
+# double SHA1（兼容 MySQL）
+PASSWORD=$(echo -n '123456' | sha1sum | awk '{print $1}' | tr -d '\n' | sha1sum | awk '{print $1}')</code></pre>
+  <h2>profile 与 quota</h2>
+  <pre><code>&lt;profiles&gt;&lt;readonly_profile&gt;
+  &lt;readonly&gt;1&lt;/readonly&gt;
+  &lt;max_memory_usage&gt;10000000000&lt;/max_memory_usage&gt;
+  &lt;max_execution_time&gt;30&lt;/max_execution_time&gt;
+&lt;/readonly_profile&gt;&lt;/profiles&gt;
+&lt;quotas&gt;&lt;q&gt;&lt;interval&gt;
+  &lt;duration&gt;3600&lt;/duration&gt;
+  &lt;queries&gt;1000&lt;/queries&gt;
+  &lt;errors&gt;100&lt;/errors&gt;
+  &lt;result_rows&gt;0&lt;/result_rows&gt;
+  &lt;read_rows&gt;0&lt;/read_rows&gt;
+  &lt;execution_time&gt;600&lt;/execution_time&gt;
+&lt;/interval&gt;&lt;/q&gt;&lt;/quotas&gt;</code></pre>
+  <h2>readonly / allow_ddl 组合</h2>
+  <table>
+    <tr><th>readonly</th><th>allow_ddl</th><th>能力</th></tr>
+    <tr><td>0</td><td>1</td><td>读写 + DDL（默认）</td></tr>
+    <tr><td>1</td><td>0</td><td>只读</td></tr>
+    <tr><td>2</td><td>1</td><td>可写但不可改设置</td></tr>
+  </table>
+  <h2>三类账号模板（users.d 拆分，幂等）</h2>
+  <pre><code># 管理账号
+CREATE USER admin IDENTIFIED WITH sha256_password BY 'Admin@123' HOST ANY;
+GRANT ALL ON *.* TO admin WITH GRANT OPTION;
+# 只读账号
+CREATE USER ro IDENTIFIED WITH sha256_password BY 'Ro@123' HOST ANY;
+GRANT SELECT ON *.* TO ro;
+# 读写账号（无 DDL）
+CREATE USER rw IDENTIFIED WITH sha256_password BY 'Rw@123' HOST ANY;
+GRANT SELECT,INSERT,ALTER UPDATE,ALTER DELETE ON *.* TO rw;</code></pre>
+</section>
+
+<section id="s45" class="detail">
+  <h1>4.5 数据类型</h1>
+  <h2>整型</h2>
+  <table>
+    <tr><th>类型</th><th>字节</th><th>范围/说明</th></tr>
+    <tr><td>Int8 / UInt8</td><td>1</td><td>-128~127 / 0~255（TINYINT）</td></tr>
+    <tr><td>Int16 / UInt16</td><td>2</td><td>SMALLINT</td></tr>
+    <tr><td>Int32 / UInt32</td><td>4</td><td>INT；UInt32 常用于 IPv4</td></tr>
+    <tr><td>Int64 / UInt64</td><td>8</td><td>BIGINT</td></tr>
+  </table>
+  <h2>浮点 / 高精度</h2>
+  <pre><code>Float32(FLOAT)  Float64(DOUBLE)   -- 浮点有精度问题
+Decimal(P,S) / Decimal32|64|128  -- 高精度金额，如 Decimal(18,2)</code></pre>
+  <h2>字符串 / UUID</h2>
+  <pre><code>String       -- 变长字符串（替代 VARCHAR/TEXT，长度无上限概念）
+FixedString(N) -- 定长
+UUID         -- 36 字符 UUID，generateUUIDv4()</code></pre>
+  <h2>时间类型</h2>
+  <pre><code>Date          -- 日期（2 字节，1970~2149）
+DateTime      -- 年月日时分秒（4 字节）
+DateTime64(S) -- 带亚秒精度
+now() today() toDate() toDateTime() toYYYYMM() formatDateTime()</code></pre>
+  <h2>复合类型</h2>
+  <pre><code>Array(T)     -- [1,2,3]；arrayJoin 展开
+Tuple(T1,T2) -- (1,'a')
+Enum8/Enum16 -- 名称与整数映射
+Nullable(T)  -- 允许 NULL（会影响性能，少用）</code></pre>
+</section>
+
+<section id="s46" class="detail">
+  <h1>4.6 数据库存储引擎</h1>
+  <h2>数据库引擎</h2>
+  <table>
+    <tr><th>引擎</th><th>说明</th></tr>
+    <tr><td>Ordinary（默认）</td><td>普通字典引擎，表数据独立存储</td></tr>
+    <tr><td>Memory</td><td>内存数据库，重启清空</td></tr>
+    <tr><td>Dictionary</td><td>字典库</td></tr>
+    <tr><td>Lazy</td><td>延迟加载，适合大量小表</td></tr>
+    <tr><td>MySQL</td><td>映射远端 MySQL，自动代理查询</td></tr>
+  </table>
+  <h2>MergeTree 重要参数</h2>
+  <pre><code>index_granularity = 8192               -- 索引粒度（行）
+use_minimalistic_part_header_in_zookeeper = 1  -- ZK 中精简 part 头
+storage_policy = 'default'             -- 存储策略（冷热分层）
+parts_to_delay_insert / parts_to_throw_insert  -- part 数保护</code></pre>
+  <h2>TTL（数据生命周期）</h2>
+  <pre><code>-- 列级 TTL：到期对列做聚合/删除
+column_name DateTime TTL create_time + INTERVAL 30 DAY
+-- 表级 TTL：到期删除/移动分区
+TTL create_time + INTERVAL 90 DAY
+TTL create_time + INTERVAL 1 YEAR TO DISK 'cold',
+    create_time + INTERVAL 2 YEAR TO VOLUME 'archive'
+-- 触发：merge 时处理；merge_with_ttl_timeout；OPTIMIZE 可立即触发</code></pre>
+  <h2>常用 MergeTree 变体</h2>
+  <table>
+    <tr><th>引擎</th><th>用途</th></tr>
+    <tr><td>ReplacingMergeTree</td><td>合并时按排序键去重（保留最新），适合最终一致去重</td></tr>
+    <tr><td>SummingMergeTree</td><td>合并时对指定数值列求和（预聚合）</td></tr>
+    <tr><td>AggregatingMergeTree</td><td>配合物化视图做聚合状态</td></tr>
+    <tr><td>CollapsingMergeTree</td><td>用 sign 字段折叠取消记录</td></tr>
+  </table>
+  <h2>Log / Memory 引擎</h2>
+  <pre><code>TinyLog/StripeLog/Log  -- &lt;100 万行的小表，文件简单
+Memory                 -- 内存表，只读不落盘，适合临时/测试
+Buffer                 -- 缓冲写入，攒批刷入目标表</code></pre>
+</section>
+
+<section id="s47" class="detail">
+  <h1>4.7 SQL 基础</h1>
+  <h2>建库 / 建表 / 插入</h2>
+  <pre><code>CREATE DATABASE IF NOT EXISTS db;
+CREATE TABLE db.t (
+    id UInt32, name String, amount Decimal(18,2), ctime DateTime DEFAULT now()
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(ctime)
+ORDER BY (ctime, id);
+INSERT INTO db.t (id,name,amount) VALUES (1,'xxx',99.5),(2,'xxx',88.0);</code></pre>
+  <h2>SELECT 完整语法</h2>
+  <pre><code>SELECT [DISTINCT] expr [AS alias]
+FROM [db.]table | (subquery) | tableFunction
+[ARRAY JOIN ...] [LEFT|INNER|FULL JOIN ... ON ...]
+[PREWHERE expr] [WHERE expr]
+[GROUP BY expr] [WITH ROLLUP|CUBE|TOTALS]
+[HAVING expr]
+[ORDER BY expr [ASC|DESC] [COLLATE] [NULLS FIRST|LAST]]
+[LIMIT [offset,] n [BY expr]]
+[UNION ALL ...] [INTO OUTFILE ...] [FORMAT format]
+[SETTINGS ...]</code></pre>
+  <h2>常用函数入口</h2>
+  <pre><code>聚合: count sum avg min max uniq uniqExact quantile groupArray
+字符串: length substring position splitByChar replace regexpExtract
+日期: toYYYYMM toHour toDayOfWeek dateDiff addDays
+数组: arrayJoin arrayMap arrayFilter has indexOf
+条件: if multiIf coalesce
+哈希: cityHash64 intHash32 MD5 SHA256
+官方文档: https://clickhouse.tech/docs/zh/sql-reference/functions/</code></pre>
+</section>
+
+<section id="s48" class="detail">
+  <h1>4.8 分区基本操作</h1>
+  <h2>分区写法</h2>
+  <pre><code>PARTITION BY toYYYYMM(ctime)          -- 函数式（月）
+PARTITION BY toYYYYMMDD(ctime)        -- 函数式（天）
+PARTITION BY region                   -- 字段
+PARTITION BY intHash32(user_id) % 10  -- 哈希</code></pre>
+  <h2>分区运维</h2>
+  <pre><code>-- 查询分区
+SELECT partition, sum(rows), formatReadableSize(sum(bytes_on_disk))
+FROM system.parts WHERE database='db' AND table='t' AND active GROUP BY partition;
+
+ALTER TABLE t DROP PARTITION '202012';                 -- 删除分区
+ALTER TABLE t REPLACE PARTITION '202012' FROM t2;      -- 从同库表复制分区
+ALTER TABLE t CLEAR COLUMN col IN PARTITION '202012';  -- 清空分区内某列
+ALTER TABLE t DETACH PARTITION '202012';               -- 卸载（移出可见）
+ALTER TABLE t ATTACH PARTITION '202012';               -- 重新装载
+ALTER TABLE t FREEZE PARTITION '202012';               -- 快照备份(硬链接到 shadow)
+OPTIMIZE TABLE t [PARTITION ...] [FINAL];              -- 手动合并 part</code></pre>
+</section>
+
+<section id="s49" class="detail">
+  <h1>4.9 数据导入导出</h1>
+  <h2>导出</h2>
+  <pre><code>clickhouse-client -q "SELECT * FROM db.t FORMAT CSV" > t.csv
+clickhouse-client -q "SELECT * FROM db.t FORMAT CSVWithNames" > t_header.csv
+clickhouse-client -q "SELECT * FROM db.t FORMAT JSONEachRow" > t.json
+# 服务端直接导出文件
+SELECT * FROM t INTO OUTFILE '/tmp/t.csv' FORMAT CSVWithNames;</code></pre>
+  <h2>导入</h2>
+  <pre><code>clickhouse-client -q "INSERT INTO db.t FORMAT CSV" < t.csv
+clickhouse-client -q "INSERT INTO db.t FORMAT CSVWithNames" < t_header.csv
+clickhouse-client -q "INSERT INTO db.t FORMAT JSONEachRow" < t.json
+# 常见格式: TabSeparated(TSV) TSVWithNames Values Parquet ORC Avro
+# 从 URL/HDFS/MySQL 直接导入: url() hdfs() mysql() 表函数</code></pre>
+</section>
+
+<section id="s410" class="detail">
+  <h1>4.10 日常运维命令</h1>
+  <h2>启停与集群检查</h2>
+  <pre><code>systemctl start|stop|restart|status clickhouse-server
+SELECT * FROM system.clusters;
+SELECT * FROM system.metrics;                 -- 当前指标
+SELECT * FROM system.events;                  -- 累计事件
+SELECT * FROM system.asynchronous_metrics;</code></pre>
+  <h2>连接与会话</h2>
+  <pre><code>SELECT * FROM system.processes;               -- 当前执行中的查询
+KILL QUERY WHERE query_id='xxx';
+SELECT * FROM system.dictionaries;
+SELECT * FROM system.merges;                  -- 正在进行的 merge
+SELECT * FROM system.replicas;                -- 副本同步状态</code></pre>
+  <h2>空间统计</h2>
+  <pre><code>SELECT name, free_space, total_space FROM system.disks;
+SELECT database, formatReadableSize(sum(bytes_on_disk))
+FROM system.parts WHERE active GROUP BY database;
+SELECT table, formatReadableSize(sum(bytes_on_disk)), sum(rows)
+FROM system.parts WHERE database='db' AND active GROUP BY table;
+-- 列大小 / 压缩率
+SELECT name, formatReadableSize(sum(data_compressed_bytes)) AS comp,
+       formatReadableSize(sum(data_uncompressed_bytes)) AS raw
+FROM system.parts_columns WHERE database='db' AND table='t' AND active
+GROUP BY name ORDER BY sum(data_uncompressed_bytes) DESC;</code></pre>
+  <h2>慢查询与日志</h2>
+  <pre><code>-- 需开启 query_log（默认开）
+SELECT event_time, query_duration_ms, read_rows, query
+FROM system.query_log
+WHERE type=2 OR query_duration_ms>3000
+ORDER BY event_time DESC LIMIT 20;</code></pre>
+  <h2>副本异常预警</h2>
+  <pre><code>SELECT database, table, is_readonly, is_session_expired,
+       absolute_delay, queue_size, errors_count
+FROM system.replicas
+WHERE absolute_delay>60 OR queue_size>100;</code></pre>
+  <h2>监控：Grafana + Prometheus</h2>
+  <ul>
+    <li>config.xml 开启 <code>&lt;prometheus&gt;</code> endpoint；Prometheus 抓取 metrics；</li>
+    <li>Grafana 导入官方 ClickHouse Dashboard（ID: 14192 等），关注 QPS、延迟、merge 队列、副本延迟、磁盘。</li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+/* ============================ 目录树数据 ============================ */
+const TREE = [
+ {t:"速查手册", id:"qref"},
+ {t:"第1章 ClickHouse 数据库基础知识", k:[
+   {t:"1.1 数据库应用分类", k:[{t:"OLTP / OLAP / HTAP", id:"s111"}]},
+   {t:"1.2 数据库存储方式", k:[{t:"行存储 vs 列存储", id:"s121"}]},
+   {t:"1.3 ClickHouse 介绍", k:[
+     {t:"简介与应用场景", id:"s131"},
+     {t:"国内使用案例", id:"s132"},
+     {t:"性能数据", id:"s133"},
+     {t:"容错、高可靠与边界", id:"s134"}]},
+   {t:"1.4 核心特性与架构", k:[
+     {t:"定位：完整 DBMS", id:"s141"},
+     {t:"服务实例与数据库", id:"s142"},
+     {t:"整体架构与数据访问流程", id:"s143"},
+     {t:"Parser 分析器", id:"s144"},
+     {t:"Intercepter 解释器", id:"s145"},
+     {t:"IStorage 存储接口", id:"s146"},
+     {t:"Column 与 Field", id:"s147"},
+     {t:"DataType 数据类型", id:"s148"},
+     {t:"Function 函数", id:"s149"},
+     {t:"存储引擎总览（4 大家族）", id:"s1410"},
+     {t:"生产三大引擎", id:"s1411"},
+     {t:"本地表与分布式表", id:"s1412"},
+     {t:"分区 Partition", id:"s1413"},
+     {t:"索引：稀疏 / 跳数", id:"s1414"}]}
+ ]},
+ {t:"第2章 分布式集群特性与解决方案", k:[
+   {t:"2.1 集群分片与副本特性", k:[
+     {t:"集群 Cluster", id:"s211"},
+     {t:"分片 Shard", id:"s212"},
+     {t:"副本 Replica", id:"s213"},
+     {t:"分布式读写流程", id:"s214"},
+     {t:"四种数据复制模式", id:"s215"}]},
+   {t:"2.2 架构方案解析", k:[
+     {t:"方案1 纯分片", id:"s221"},
+     {t:"方案2 分片+副本复制", id:"s222"},
+     {t:"方案3 分片+副本+高可用", id:"s223"},
+     {t:"ZooKeeper 介绍", id:"s224"},
+     {t:"生产最优架构", id:"s225"},
+     {t:"生产部署要点", id:"s226"}]}
+ ]},
+ {t:"第3章 分布式集群生产项目", k:[
+   {t:"3.1 Linux 环境准备", id:"s31"},
+   {t:"3.2 单机环境安装", id:"s32"},
+   {t:"3.3 多实例环境安装", id:"s33"},
+   {t:"3.4 集群节点环境配置", id:"s34"},
+   {t:"3.5 集群分片", id:"s35"},
+   {t:"3.6 分片副本复制", id:"s36"},
+   {t:"3.7 分片副本高可用", id:"s37"},
+   {t:"3.8 生产集群节点扩容", id:"s38"},
+   {t:"3.9 版本升级", id:"s39"},
+   {t:"3.10 负载分发（chproxy）", id:"s310"}
+ ]},
+ {t:"第4章 日常维护与管理入门", k:[
+   {t:"4.1 客户端使用", id:"s41"},
+   {t:"4.2 官方数据 POC 测试", id:"s42"},
+   {t:"4.3 配置文件管理", id:"s43"},
+   {t:"4.4 用户权限管理", id:"s44"},
+   {t:"4.5 数据类型", id:"s45"},
+   {t:"4.6 数据库存储引擎", id:"s46"},
+   {t:"4.7 SQL 基础", id:"s47"},
+   {t:"4.8 分区基本操作", id:"s48"},
+   {t:"4.9 数据导入导出", id:"s49"},
+   {t:"4.10 日常运维命令", id:"s410"}
+ ]}
+];
+
+/* ============================ 渲染树 ============================ */
+const treeEl=document.getElementById('tree');
+const mainEl=document.getElementById('main');
+const details=document.getElementById('details');
+let nodeSeq=0;
+
+function crumbsFor(path){ return path.map(n=>n.t).join('  ›  '); }
+
+function buildNode(data, path, isChap){
+  const seq=++nodeSeq;
+  const node=document.createElement('div');
+  node.className='node'+(isChap?' chap':'');
+  const row=document.createElement('div'); row.className='row';
+  const hasKids=data.k&&data.k.length;
+  const tw=document.createElement('span'); tw.className='tw'; tw.textContent=hasKids?'▶':'';
+  const ic=document.createElement('span'); ic.className='ic'; ic.textContent=hasKids?'📁':'📄';
+  const title=document.createElement('span'); title.textContent=data.t;
+  row.append(tw,ic,title); node.appendChild(row);
+  const here=path.concat([data]);
+  let kidsEl=null;
+  if(hasKids){
+    kidsEl=document.createElement('div'); kidsEl.className='kids';
+    data.k.forEach(ch=>kidsEl.appendChild(buildNode(ch,here,false)));
+    node.appendChild(kidsEl);
+  }
+  row.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(hasKids) node.classList.toggle('open');
+    if(data.id) selectNode(data,here);
+    else if(hasKids && !data.id) selectFirstLeaf(data,here);
+  });
+  node._data=data; node._path=here; node._kidsEl=kidsEl;
+  return node;
+}
+function selectFirstLeaf(data,path){
+  let d=data; let p=path;
+  while(d.k&&d.k.length){ d=d.k[0]; p=p.concat([d]); }
+  if(d.id) selectNode(d,p);
+}
+
+function selectNode(data,path){
+  document.querySelectorAll('#tree .row.sel').forEach(r=>r.classList.remove('sel'));
+  const rows=findRows(data);
+  rows.forEach(r=>r.classList.add('sel'));
+  const sec=details.querySelector('#'+data.id);
+  mainEl.innerHTML='';
+  const cr=document.createElement('div'); cr.className='crumbs'; cr.textContent=crumbsFor(path.slice(0,-1));
+  mainEl.appendChild(cr);
+  if(sec){ const wrap=document.createElement('div'); wrap.innerHTML=sec.innerHTML; mainEl.appendChild(wrap); }
+  mainEl.scrollTop=0;
+  try{localStorage.setItem('ch_sel',data.id);}catch(e){}
+  bindCopy(mainEl);
+}
+function findRows(data){
+  const out=[];
+  treeEl.querySelectorAll('.node').forEach(n=>{ if(n._data===data) out.push(n.querySelector('.row')); });
+  return out;
+}
+
+TREE.forEach((d,i)=>treeEl.appendChild(buildNode(d,[],true)));
+
+/* 默认展开第1章并显示欢迎页；若有上次记录则恢复 */
+const findNodeEl=(data)=>{let f=null;treeEl.querySelectorAll('.node').forEach(n=>{if(n._data===data)f=n;});return f;};
+(function(){
+  const first=treeEl.querySelector('.node'); first.classList.add('open');
+  mainEl.innerHTML=details.querySelector('#welcome').innerHTML;
+  bindCopy(mainEl);
+  let saved=null; try{saved=localStorage.getItem('ch_sel');}catch(e){}
+  if(saved){
+    const hit=findById(saved);
+    if(hit){ const el=findNodeEl(hit.data); if(el){expandTo(el);selectNode(hit.data,el._path);} }
+  }
+})();
+
+function findById(id,list=TREE){
+  for(const d of list){
+    if(d.id===id) return {data:d};
+    if(d.k){ const r=findById(id,d.k); if(r) return r; }
+  }
+  return null;
+}
+function expandTo(node){
+  let p=node.parentElement;
+  while(p){ if(p.classList&&p.classList.contains('node')) p.classList.add('open'); p=p.parentElement; }
+}
+
+/* ============================ 展开/折叠 ============================ */
+document.getElementById('expandAll').onclick=()=>treeEl.querySelectorAll('.node').forEach(n=>n.classList.add('open'));
+document.getElementById('collapseAll').onclick=()=>treeEl.querySelectorAll('.node').forEach(n=>n.classList.remove('open'));
+
+/* ============================ 搜索 ============================ */
+const q=document.getElementById('q'), qclear=document.getElementById('qclear');
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();q.focus();q.select();}
+  if(e.key==='Escape'&&document.activeElement===q){q.value='';applySearch('');q.blur();}
+});
+q.addEventListener('input',()=>applySearch(q.value.trim()));
+qclear.onclick=()=>{q.value='';applySearch('');q.focus();};
+
+const CONTENT={};
+details.querySelectorAll('section[id]').forEach(sx=>CONTENT[sx.id]=(sx.textContent||'').toLowerCase());
+function applySearch(term){
+  qclear.style.display=term?'block':'none';
+  const all=treeEl.querySelectorAll('.node');
+  if(!term){ all.forEach(n=>{n.style.display='';n.classList.remove('open');highlight(n,'');}); 
+    treeEl.querySelector('.node').classList.add('open'); return; }
+  const low=term.toLowerCase();
+  let any=false;
+  all.forEach(n=>{
+    const d=n._data;
+    let titleHit=d.t.toLowerCase().includes(low);
+    let contentHit=false;
+    if(d.id){ contentHit=(CONTENT[d.id]||'').includes(low); }
+    n._hit=titleHit||contentHit;
+    if(n._hit) any=true;
+    highlight(n, term);
+  });
+  // 可见性：命中或后代命中
+  all.forEach(n=>{
+    let show=!!n._hit, p=n.parentElement&&n.parentElement.closest('.node');
+    if(!show){ let child=n._kidsEl; if(child){ child.querySelectorAll('.node').forEach(c=>{if(c.style.display!=='none'&&c._hit)show=true;}); } }
+    n.style.display=show?'':'none';
+    if(show){ n.classList.add('open'); }
+  });
+  let nr=document.getElementById('noresult');
+  if(!nr){nr=document.createElement('div');nr.id='noresult';nr.className='noresult';treeEl.prepend(nr);}
+  nr.style.display=any?'none':'block'; nr.textContent='未找到与「'+term+'」相关的内容';
+}
+function highlight(n,term){
+  const d=n._data; const span=n.querySelector('.row span:last-child');
+  const raw=d.t;
+  if(term&&raw.toLowerCase().includes(term.toLowerCase())){
+    const i=raw.toLowerCase().indexOf(term.toLowerCase());
+    span.innerHTML=raw.slice(0,i)+'<span class="mark">'+raw.slice(i,i+term.length)+'</span>'+raw.slice(i+term.length);
+  } else span.textContent=raw;
+}
+
+/* ============================ 复制按钮 ============================ */
+function bindCopy(root){
+  root.querySelectorAll('pre').forEach(pre=>{
+    if(pre.querySelector('.copy'))return;
+    const b=document.createElement('button'); b.className='copy'; b.textContent='复制';
+    b.onclick=()=>{ const code=pre.querySelector('code'); const txt=code?code.textContent:pre.textContent;
+      navigator.clipboard.writeText(txt).then(()=>{b.textContent='已复制 ✓';setTimeout(()=>b.textContent='复制',1400);}); };
+    pre.appendChild(b);
+  });
+}
+</script>
+</body>
+</html>

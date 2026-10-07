@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<yandex>
+    <profiles>
+
+        <default>
+            <max_memory_usage>100000000</max_memory_usage>
+            <use_uncompressed_cache>0</use_uncompressed_cache>
+            <load_balancing>random</load_balancing>
+        </default>
+
+        <readonly>
+            <readonly>1</readonly>
+        </readonly>
+
+        <readwrite>
+            <constraints>
+                <max_memory_usage>
+                    <readonly/>
+                </max_memory_usage>
+                <force_index_by_date>
+                    <readonly/>
+                </force_index_by_date>
+            </constraints>
+        </readwrite>
+
+    </profiles>
+
+    <users>
+        <default>
+            <password></password>
+            <networks incl="networks" replace="replace">
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+
+        <!--从任何IP访问的只读账号xxx_readonly -->
+        <xxx_readonly>
+            <password>xxx</password>
+            <networks incl="networks" replace="replace">
+                <ip>::/0</ip>
+            </networks>
+            <profile>readonly</profile>
+            <quota>default</quota>
+        </xxx_readonly>
+
+        <!--从指定IP访问的读写账号xxx_readwrite,指定不能set的参数 -->
+        <xxx_readwrite>
+            <password>xxx</password>
+            <networks incl="networks" replace="replace">
+                <ip>192.168.1.138</ip>
+            </networks>
+            <profile>readwrite</profile>
+            <quota>default</quota>
+        </xxx_readwrite>
+
+        <!--从指定IP访问的管理账号 -->
+        <xxx_admin>
+            <password>xxx</password>
+            <networks incl="networks" replace="replace">
+                <ip>192.168.1.138</ip>
+                <ip>192.168.1.139</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </xxx_admin>
+
+        <!--从指定IP访问指定数据库 -->
+        <xxx_readonly01>
+            <password>xxx</password>
+            <networks incl="networks" replace="replace">
+                <ip>::/0</ip>
+                <ip>127.0.0.1</ip>
+                <ip>192.168.1.138</ip>
+            </networks>
+            <profile>readwrite</profile>
+            <quota>default</quota>
+            <allow_databases>
+                <database>itpuxdb</database>
+            </allow_databases>
+        </xxx_readonly01>
+
+        <!--从指定IP访问指定数据库表的记录 -->
+        <xxx_readonly02>
+            <password>xxx</password>
+            <networks incl="networks" replace="replace">
+                <ip>::/0</ip>
+                <ip>127.0.0.1</ip>
+                <ip>192.168.1.138</ip>
+            </networks>
+            <profile>readonly</profile>
+            <quota>default</quota>
+            <allow_databases>
+                <database>itpuxdb</database>
+            </allow_databases>
+            <databases>
+                <itpuxdb>
+                    <table1>
+                        <filter>id >= 1000 </filter>
+                    </table1>
+                </itpuxdb>
+            </databases>
+        </xxx_readonly02>
+
+    </users>
+
+    <quotas>
+        <default>
+            <interval>
+                <duration>3600</duration>
+                <queries>0</queries>
+                <errors>0</errors>
+                <result_rows>0</result_rows>
+                <read_rows>0</read_rows>
+                <execution_time>0</execution_time>
+            </interval>
+        </default>
+    </quotas>
+
+</yandex>
