@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Server 知识地图 — 全解版</title>
+<style>
+:root{--c1:#2563eb;--c1-bg:#eff6ff;--c1-bd:#bfdbfe;--c2:#7c3aed;--c2-bg:#f5f3ff;--c2-bd:#ddd6fe;--c3:#059669;--c3-bg:#ecfdf5;--c3-bd:#a7f3d0;--c4:#d97706;--c4-bg:#fffbeb;--c4-bd:#fde68a;--c5:#dc2626;--c5-bg:#fef2f2;--c5-bd:#fecaca;--bg:#f8fafc;--card:#fff;--bd:#e2e8f0;--txt:#1e293b;--mut:#64748b;--acc:#2563eb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar h1{font-size:17px;white-space:nowrap}
+.topbar .sub{font-size:12px;opacity:.8}
+.search{flex:1;max-width:400px;position:relative;margin-left:auto}
+.search input{width:100%;padding:8px 14px 8px 34px;border:none;border-radius:8px;font-size:13px;outline:none}
+.search::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
+.search .clr{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;font-size:15px;color:var(--mut);display:none}
+.stats{font-size:12px;opacity:.85;white-space:nowrap}
+.main{flex:1;display:flex;overflow:hidden}
+.sidebar{width:330px;background:var(--card);border-right:1px solid var(--bd);overflow-y:auto;flex-shrink:0}
+.sb-hd{padding:9px 12px;border-bottom:1px solid var(--bd);display:flex;gap:6px;position:sticky;top:0;background:var(--card);z-index:2}
+.sb-hd button{flex:1;padding:5px 6px;font-size:11px;border:1px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;color:var(--mut)}
+.sb-hd button:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tree{padding:6px 0}
+.tn{user-select:none}
+.tl{display:flex;align-items:center;padding:5px 10px;cursor:pointer;border-left:3px solid transparent;font-size:13px;line-height:1.4}
+.tl:hover{background:#f1f5f9}
+.tl.active{background:var(--c1-bg);border-left-color:var(--c1);color:var(--c1);font-weight:600}
+.tl .tg{width:16px;text-align:center;font-size:9px;color:var(--mut);flex-shrink:0;transition:transform .2s}
+.tl .tg.exp{transform:rotate(90deg)}
+.tl .tg.leaf{visibility:hidden}
+.tl .ic{margin-right:5px;font-size:13px;flex-shrink:0}
+.tl .pg{margin-left:auto;font-size:10px;color:var(--mut);background:#f1f5f9;padding:1px 5px;border-radius:8px;flex-shrink:0}
+.tc{display:none}.tc.open{display:block}
+.tc .tl{padding-left:26px;font-size:12.5px}
+.tc .tc .tl{padding-left:42px;font-size:12px}
+.tc .tc .tc .tl{padding-left:58px}
+.m1 .ic{color:var(--c1)}.m2 .ic{color:var(--c2)}.m3 .ic{color:var(--c3)}.m4 .ic{color:var(--c4)}.m5 .ic{color:var(--c5)}
+.content{flex:1;overflow-y:auto;padding:20px 28px}
+.ch{margin-bottom:16px}
+.ch h2{font-size:20px;margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ch .bc{font-size:12px;color:var(--mut)}
+.ch .bc span{cursor:pointer}.ch .bc span:hover{color:var(--acc);text-decoration:underline}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:14px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--bd)}
+.card p,.card li{font-size:13.5px;line-height:1.75;color:#334155}
+.card ul,.card ol{padding-left:18px;margin:6px 0}.card li{margin-bottom:3px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;margin:2px 4px 2px 0}
+.tp{background:#f1f5f9;color:var(--mut)}.tcmd{background:#fef3c7;color:#92400e}.tip{background:#dbeafe;color:#1e40af}.tw{background:#fee2e2;color:#991b1b}.tt{background:#d1fae5;color:#065f46}
+code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12.5px;color:#be185d;font-family:Consolas,monospace}
+pre{background:#1e293b;color:#e2e8f0;padding:12px 16px;border-radius:8px;overflow-x:auto;margin:8px 0;font-size:12.5px;line-height:1.6}
+pre code{background:none;color:inherit;padding:0}
+.warn{background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.good{background:#ecfdf5;border-left:4px solid #10b981;padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.info{background:#eff6ff;border-left:4px solid #3b82f6;padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mc{background:#f8fafc;border:1px solid var(--bd);border-radius:8px;padding:10px 12px}
+.mc h4{font-size:13px;margin-bottom:5px;color:var(--acc)}
+.mc p{font-size:12px;color:var(--mut);line-height:1.55}
+.steps{counter-reset:s}
+.st{position:relative;padding:9px 0 9px 32px;border-left:2px solid var(--bd);margin-left:10px}
+.st::before{counter-increment:s;content:counter(s);position:absolute;left:-11px;top:9px;width:22px;height:22px;background:var(--acc);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.st:last-child{border-left-color:transparent}
+.st strong{display:block;margin-bottom:3px;font-size:13.5px}
+.st p{font-size:12.5px;color:var(--mut)}
+.dia-wrap{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;margin:10px 0 14px;overflow-x:auto}
+.dia-wrap .dia-title{font-size:14px;font-weight:600;margin-bottom:10px;color:#1e3a5f;display:flex;align-items:center;gap:6px}
+.dia-wrap .dia-title .pg-tag{font-size:11px;font-weight:400;color:var(--mut);background:#f1f5f9;padding:1px 7px;border-radius:8px}
+.dia-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.empty{text-align:center;padding:70px 20px;color:var(--mut)}
+.empty .eicon{font-size:44px;margin-bottom:14px}
+.tl.match{background:#fef9c3}
+table.hk{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0}
+table.hk th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-weight:600}
+table.hk td{padding:7px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
+table.hk tr:nth-child(even){background:#f8fafc}
+table.hk tr:hover{background:#eff6ff}
+table.hk .lvl{font-weight:700;text-align:center;color:var(--c5)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="topbar">
+<h1>📚 SQL Server 知识地图</h1><span class="sub">全解版 · 230页精华</span>
+<div class="search"><input type="text" id="si" placeholder="搜索：AlwaysOn、FCI、iSCSI、日志传送、镜像、读写分离…"><button class="clr" id="sc">✕</button></div>
+<span class="stats" id="st">5大模块 · 35个知识点 · 12张架构图</span>
+</div>
+<div class="main">
+<div class="sidebar"><div class="sb-hd"><button onclick="exAll()">全部展开</button><button onclick="colAll()">全部折叠</button></div><div class="tree" id="tree"></div></div>
+<div class="content" id="ct"><div class="empty"><div class="eicon">🗺️</div><p>点击左侧节点查看详情与架构图<br>或在顶部搜索框输入关键词快速定位</p></div></div>
+</div>
+<script>
+const SVG={};
+SVG.hierarchy=`<svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#94a3b8"/></marker></defs>
+<ellipse cx="100" cy="260" rx="65" ry="90" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+<text x="100" y="190" text-anchor="middle" font-size="13" font-weight="600" fill="#1e40af">客户端/应用端</text>
+<circle cx="75" cy="225" r="13" fill="#60a5fa"/><circle cx="125" cy="225" r="13" fill="#60a5fa"/><circle cx="75" cy="280" r="13" fill="#60a5fa"/><circle cx="125" cy="280" r="13" fill="#60a5fa"/>
+<rect x="90" y="300" width="22" height="18" fill="#93c5fd" rx="2"/><rect x="88" y="240" width="22" height="18" fill="#93c5fd" rx="2"/>
+<line x1="170" y1="240" x2="240" y2="240" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar1)"/>
+<text x="205" y="232" text-anchor="middle" font-size="11" fill="#64748b">Write/Read</text>
+<rect x="245" y="70" width="580" height="420" fill="#fafbfc" stroke="#cbd5e1" stroke-width="1.5" rx="6" stroke-dasharray="5,3"/>
+<text x="535" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">数据库主机（SQL Server）</text>
+<rect x="310" y="110" width="110" height="44" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" rx="5"/>
+<text x="365" y="128" text-anchor="middle" font-size="11" fill="#92400e">实例</text><text x="365" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">SQLServer1</text>
+<rect x="460" y="110" width="110" height="44" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" rx="5"/>
+<text x="515" y="128" text-anchor="middle" font-size="11" fill="#92400e">实例</text><text x="515" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">SQLServer2</text>
+<rect x="285" y="190" width="120" height="38" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" rx="5"/>
+<text x="345" y="206" text-anchor="middle" font-size="11" fill="#1e40af">业务数据库</text><text x="345" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">xxdb1</text>
+<rect x="435" y="190" width="120" height="38" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" rx="5"/>
+<text x="495" y="206" text-anchor="middle" font-size="11" fill="#1e40af">业务数据库</text><text x="495" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">xxdb2</text>
+<rect x="600" y="185" width="200" height="50" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5" rx="5"/>
+<text x="700" y="204" text-anchor="middle" font-size="11" fill="#9d174d">系统数据库</text><text x="700" y="222" text-anchor="middle" font-size="11" font-weight="600" fill="#9d174d">master / model / msdb / tempdb</text>
+<line x1="365" y1="154" x2="345" y2="188" stroke="#94a3b8" stroke-width="1.2"/><line x1="365" y1="154" x2="495" y2="188" stroke="#94a3b8" stroke-width="1.2"/><line x1="515" y1="154" x2="700" y2="183" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="270" y="270" width="90" height="34" fill="#d1fae5" stroke="#10b981" stroke-width="1.5" rx="5"/><text x="315" y="291" text-anchor="middle" font-size="12" font-weight="600" fill="#065f46">文件组1</text>
+<rect x="380" y="270" width="90" height="34" fill="#d1fae5" stroke="#10b981" stroke-width="1.5" rx="5"/><text x="425" y="291" text-anchor="middle" font-size="12" font-weight="600" fill="#065f46">文件组2</text>
+<rect x="490" y="270" width="90" height="34" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5" rx="5"/><text x="535" y="291" text-anchor="middle" font-size="12" font-weight="600" fill="#9d174d">日志文件</text>
+<line x1="345" y1="228" x2="315" y2="268" stroke="#94a3b8" stroke-width="1.2"/><line x1="345" y1="228" x2="425" y2="268" stroke="#94a3b8" stroke-width="1.2"/><line x1="345" y1="228" x2="535" y2="268" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="285" y="340" width="100" height="32" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5" rx="5"/><text x="335" y="360" text-anchor="middle" font-size="12" font-weight="600" fill="#3730a3">数据文件1</text>
+<rect x="400" y="340" width="100" height="32" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5" rx="5"/><text x="450" y="360" text-anchor="middle" font-size="12" font-weight="600" fill="#3730a3">数据文件2</text>
+<line x1="315" y1="304" x2="335" y2="338" stroke="#94a3b8" stroke-width="1.2"/><line x1="425" y1="304" x2="450" y2="338" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="230" y="410" width="400" height="60" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" rx="6"/>
+<text x="430" y="460" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">Schema</text>
+<rect x="245" y="420" width="60" height="28" fill="#cbd5e1" stroke="#64748b" rx="4"/><text x="275" y="438" text-anchor="middle" font-size="11" fill="#1e293b">表</text>
+<rect x="320" y="420" width="60" height="28" fill="#cbd5e1" stroke="#64748b" rx="4"/><text x="350" y="438" text-anchor="middle" font-size="11" fill="#1e293b">索引</text>
+<rect x="395" y="420" width="60" height="28" fill="#cbd5e1" stroke="#64748b" rx="4"/><text x="425" y="438" text-anchor="middle" font-size="11" fill="#1e293b">视图</text>
+<rect x="470" y="420" width="60" height="28" fill="#cbd5e1" stroke="#64748b" rx="4"/><text x="500" y="438" text-anchor="middle" font-size="11" fill="#1e293b">存储过程</text>
+<rect x="545" y="420" width="60" height="28" fill="#cbd5e1" stroke="#64748b" rx="4"/><text x="575" y="438" text-anchor="middle" font-size="11" fill="#1e293b">函数</text>
+<line x1="335" y1="372" x2="300" y2="408" stroke="#94a3b8" stroke-width="1.2"/><line x1="450" y1="372" x2="430" y2="408" stroke="#94a3b8" stroke-width="1.2"/>
+</svg>`;
+SVG.coreEngine=`<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#64748b"/></marker></defs>
+<rect x="15" y="120" width="80" height="60" fill="#e0f2fe" stroke="#0ea5e9" rx="8"/><text x="55" y="155" text-anchor="middle" font-size="12" font-weight="600" fill="#075985">客户端</text>
+<rect x="120" y="100" width="130" height="100" fill="#d1fae5" stroke="#10b981" stroke-width="2" rx="8"/>
+<text x="185" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">协议层</text><text x="185" y="162" text-anchor="middle" font-size="11" fill="#065f46">SQLServer</text><text x="185" y="178" text-anchor="middle" font-size="11" fill="#065f46">网络接口</text>
+<line x1="95" y1="150" x2="118" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar2)"/>
+<rect x="280" y="30" width="250" height="170" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="405" y="52" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">关系引擎（查询处理器）</text>
+<rect x="295" y="65" width="105" height="36" fill="#bfdbfe" stroke="#3b82f6" rx="5"/><text x="347" y="88" text-anchor="middle" font-size="11" fill="#1e40af">命令分析器</text>
+<rect x="295" y="110" width="105" height="36" fill="#fecaca" stroke="#ef4444" rx="5"/><text x="347" y="133" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">查询优化器</text>
+<rect x="295" y="155" width="105" height="36" fill="#bfdbfe" stroke="#3b82f6" rx="5"/><text x="347" y="178" text-anchor="middle" font-size="11" fill="#1e40af">查询执行器</text>
+<line x1="250" y1="150" x2="278" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar2)"/>
+<rect x="280" y="230" width="250" height="200" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="405" y="252" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">存储引擎</text>
+<rect x="295" y="265" width="100" height="36" fill="#93c5fd" stroke="#3b82f6" rx="5"/><text x="345" y="288" text-anchor="middle" font-size="11" fill="#1e3a8a">事务管理器</text>
+<rect x="295" y="310" width="100" height="36" fill="#93c5fd" stroke="#3b82f6" rx="5"/><text x="345" y="333" text-anchor="middle" font-size="11" fill="#1e3a8a">存取方法</text>
+<rect x="405" y="290" width="110" height="80" fill="#60a5fa" stroke="#3b82f6" rx="5"/><text x="460" y="335" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">缓存区管理器</text>
+<rect x="405" y="380" width="110" height="36" fill="#a7f3d0" stroke="#10b981" rx="5"/><text x="460" y="403" text-anchor="middle" font-size="11" fill="#065f46">实用工具</text>
+<line x1="405" y1="191" x2="405" y2="228" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar2)"/>
+<rect x="560" y="230" width="160" height="200" fill="#f1f5f9" stroke="#64748b" stroke-width="2" rx="8"/>
+<text x="640" y="252" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">缓存池</text>
+<rect x="575" y="265" width="130" height="50" fill="#e2e8f0" stroke="#94a3b8" rx="5"/><text x="640" y="295" text-anchor="middle" font-size="12" fill="#334155">执行计划缓存</text>
+<rect x="575" y="325" width="130" height="90" fill="#93c5fd" stroke="#3b82f6" rx="5"/><text x="640" y="375" text-anchor="middle" font-size="12" font-weight="600" fill="#1e3a8a">数据缓存区</text>
+<line x1="530" y1="330" x2="558" y2="330" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar2)"/>
+<ellipse cx="185" cy="320" rx="55" ry="30" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/><text x="185" y="325" text-anchor="middle" font-size="12" font-weight="600" fill="#9d174d">事务日志</text>
+<ellipse cx="185" cy="420" rx="55" ry="30" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/><text x="185" y="425" text-anchor="middle" font-size="12" font-weight="600" fill="#9d174d">数据文件</text>
+<line x1="280" y1="300" x2="240" y2="320" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar2)"/>
+<line x1="240" y1="410" x2="280" y2="380" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar2)"/>
+<line x1="280" y1="420" x2="240" y2="420" stroke="#64748b" stroke-width="1.2" marker-end="url(#ar2)"/>
+<text x="405" y="470" text-anchor="middle" font-size="11" fill="#64748b">查询路径：客户端 → 协议层 → 命令分析器 → 查询优化器 → 查询执行器 → 存储引擎 → 数据文件</text>
+<text x="405" y="490" text-anchor="middle" font-size="11" fill="#64748b">WAL 预写日志：数据修改先写事务日志（物理落盘），再修改数据页</text>
+<rect x="280" y="505" width="440" height="40" fill="#fef3c7" stroke="#f59e0b" rx="6"/>
+<text x="500" y="522" text-anchor="middle" font-size="11" fill="#92400e">Lazy Writer：保证 SQLOS 有空闲缓存块和系统可用内存</text>
+<text x="500" y="538" text-anchor="middle" font-size="11" fill="#92400e">CheckPoint：将脏页写入数据文件，减少服务器恢复时间</text>
+</svg>`;
+SVG.memory=`<svg viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<rect x="50" y="20" width="600" height="420" fill="#f8fafc" stroke="#64748b" stroke-width="2" rx="8"/>
+<text x="350" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="#1e3a5f">SQL Server 内存结构</text>
+<rect x="70" y="65" width="560" height="320" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="6"/>
+<text x="350" y="90" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Buffer Cache（Buffer Pool）</text>
+<rect x="90" y="105" width="200" height="40" fill="#3b82f6" rx="5"/><text x="190" y="130" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">Plan Cache 计划缓存</text>
+<rect x="90" y="155" width="200" height="36" fill="#93c5fd" rx="5"/><text x="190" y="178" text-anchor="middle" font-size="12" fill="#1e3a8a">Query Workspace 查询工作区</text>
+<rect x="90" y="200" width="200" height="36" fill="#93c5fd" rx="5"/><text x="190" y="223" text-anchor="middle" font-size="12" fill="#1e3a8a">Locks 锁</text>
+<rect x="90" y="245" width="200" height="36" fill="#93c5fd" rx="5"/><text x="190" y="268" text-anchor="middle" font-size="12" fill="#1e3a8a">Other 其他</text>
+<rect x="310" y="105" width="300" height="200" fill="#3b82f6" rx="8"/>
+<text x="460" y="200" text-anchor="middle" font-size="16" fill="#fff" font-weight="700">Data Cache</text>
+<text x="460" y="225" text-anchor="middle" font-size="12" fill="#bfdbfe">数据缓存（最大组成部分）</text>
+<rect x="90" y="320" width="520" height="28" fill="#64748b" rx="4"/><text x="350" y="339" text-anchor="middle" font-size="12" fill="#fff">Thread Stacks 线程堆栈</text>
+<rect x="70" y="395" width="560" height="30" fill="#94a3b8" rx="5"/><text x="350" y="415" text-anchor="middle" font-size="12" fill="#fff">MemToLeave Area（预留内存区域）</text>
+<text x="350" y="448" text-anchor="middle" font-size="11" fill="#64748b">max server memory 设置 Buffer Cache 上限 | min server memory 设置可释放内存下限</text>
+</svg>`;
+SVG.fci=`<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#64748b"/></marker></defs>
+<ellipse cx="90" cy="210" rx="65" ry="100" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+<text x="90" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">客户端/应用端</text>
+<circle cx="65" cy="170" r="12" fill="#60a5fa"/><circle cx="115" cy="170" r="12" fill="#60a5fa"/><circle cx="65" cy="240" r="12" fill="#60a5fa"/><circle cx="115" cy="240" r="12" fill="#60a5fa"/>
+<rect x="78" y="270" width="24" height="20" fill="#93c5fd" rx="2"/>
+<line x1="160" y1="180" x2="240" y2="180" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar4)"/>
+<line x1="160" y1="210" x2="240" y2="210" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar4)"/>
+<line x1="160" y1="240" x2="240" y2="240" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar4)"/>
+<text x="200" y="170" text-anchor="middle" font-size="12" fill="#64748b" font-weight="600">VIP访问</text>
+<text x="200" y="225" text-anchor="middle" font-size="12" fill="#64748b" font-weight="600">VIP访问</text>
+<text x="200" y="260" text-anchor="middle" font-size="12" fill="#64748b" font-weight="600">VIP访问</text>
+<rect x="250" y="30" width="620" height="360" fill="#fafbfc" stroke="#cbd5e1" stroke-width="1.5" rx="8" stroke-dasharray="6,4"/>
+<text x="560" y="58" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">故障转移集群（FCI）</text>
+<line x1="280" y1="90" x2="840" y2="90" stroke="#3b82f6" stroke-width="3"/>
+<rect x="310" y="110" width="120" height="130" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="370" y="135" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">活动节点</text>
+<rect x="330" y="145" width="35" height="50" fill="#16a34a" rx="3"/><ellipse cx="385" cy="180" rx="18" ry="22" fill="#86efac" stroke="#16a34a"/>
+<text x="370" y="220" text-anchor="middle" font-size="11" fill="#166534" font-weight="600">xxnode01</text><text x="370" y="234" text-anchor="middle" font-size="10" fill="#166534">（主）</text>
+<rect x="510" y="110" width="120" height="130" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="8"/>
+<text x="570" y="135" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">被动节点</text>
+<rect x="530" y="145" width="35" height="50" fill="#d97706" rx="3"/><ellipse cx="585" cy="180" rx="18" ry="22" fill="#fde68a" stroke="#d97706"/>
+<text x="570" y="220" text-anchor="middle" font-size="11" fill="#92400e" font-weight="600">xxnode02</text><text x="570" y="234" text-anchor="middle" font-size="10" fill="#92400e">（备）</text>
+<text x="470" y="120" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">Read/Write VIP</text>
+<line x1="430" y1="130" x2="510" y2="130" stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="370" y1="255" x2="570" y2="255" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="470" y="275" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="600">心跳网络</text>
+<line x1="370" y1="240" x2="470" y2="330" stroke="#64748b" stroke-width="1.5"/><line x1="570" y1="240" x2="470" y2="330" stroke="#64748b" stroke-width="1.5"/>
+<rect x="370" y="330" width="200" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="2" rx="4"/>
+<text x="470" y="348" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Storage 共享存储</text>
+<text x="470" y="364" text-anchor="middle" font-size="10" fill="#475569">iSCSI / SAN（数据文件、日志文件）</text>
+<rect x="730" y="110" width="110" height="100" fill="#f1f5f9" stroke="#64748b" stroke-width="2" rx="8"/>
+<rect x="750" y="135" width="30" height="45" fill="#94a3b8" rx="3"/><ellipse cx="800" cy="165" rx="16" ry="20" fill="#cbd5e1" stroke="#64748b"/>
+<text x="785" y="195" text-anchor="middle" font-size="11" fill="#334155" font-weight="600">域服务器</text><text x="785" y="208" text-anchor="middle" font-size="11" fill="#334155">DNS服务器</text>
+<text x="470" y="390" text-anchor="middle" font-size="11" fill="#64748b">特点：实例级高可用 · 共享存储 · 秒级自动切换 · VIP 对客户端透明 · 但存储是单点</text>
+</svg>`;
+SVG.alwayson=`<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar5" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#64748b"/></marker></defs>
+<ellipse cx="80" cy="240" rx="60" ry="90" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+<text x="80" y="170" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">客户端/应用端</text>
+<circle cx="58" cy="205" r="11" fill="#60a5fa"/><circle cx="102" cy="205" r="11" fill="#60a5fa"/><circle cx="58" cy="265" r="11" fill="#60a5fa"/><circle cx="102" cy="265" r="11" fill="#60a5fa"/>
+<text x="80" y="330" text-anchor="middle" font-size="11" fill="#1e40af">集群VIP访问/故障转移</text>
+<line x1="145" y1="240" x2="195" y2="240" stroke="#64748b" stroke-width="2" marker-end="url(#ar5)"/>
+<rect x="200" y="30" width="680" height="400" fill="#fafbfc" stroke="#cbd5e1" stroke-width="1.5" rx="8" stroke-dasharray="6,4"/>
+<text x="540" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">以太网络</text>
+<line x1="220" y1="70" x2="860" y2="70" stroke="#3b82f6" stroke-width="3"/>
+<rect x="230" y="90" width="140" height="150" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="300" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#166534">SQLServer 实例1</text>
+<rect x="265" y="125" width="30" height="45" fill="#16a34a" rx="3"/><ellipse cx="320" cy="155" rx="16" ry="20" fill="#86efac" stroke="#16a34a"/>
+<text x="300" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">读写（主副本）</text>
+<rect x="245" y="280" width="105" height="40" fill="#dbeafe" stroke="#3b82f6" rx="5"/><text x="297" y="298" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb1</text><text x="297" y="313" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb2</text>
+<rect x="420" y="90" width="140" height="150" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="8"/>
+<text x="490" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">SQLServer 实例2</text>
+<rect x="455" y="125" width="30" height="45" fill="#d97706" rx="3"/><ellipse cx="510" cy="155" rx="16" ry="20" fill="#fde68a" stroke="#d97706"/>
+<text x="490" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">只读（辅助副本）</text>
+<rect x="435" y="280" width="105" height="40" fill="#dbeafe" stroke="#3b82f6" rx="5"/><text x="487" y="298" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb1</text><text x="487" y="313" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb2</text>
+<rect x="610" y="90" width="140" height="150" fill="#fee2e2" stroke="#dc2626" stroke-width="2" rx="8"/>
+<text x="680" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">SQLServer 实例3</text>
+<rect x="645" y="125" width="30" height="45" fill="#dc2626" rx="3"/><ellipse cx="700" cy="155" rx="16" ry="20" fill="#fecaca" stroke="#dc2626"/>
+<text x="680" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#991b1b">只读（辅助副本）</text>
+<rect x="625" y="280" width="105" height="40" fill="#dbeafe" stroke="#3b82f6" rx="5"/><text x="677" y="298" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb1</text><text x="677" y="313" text-anchor="middle" font-size="10" fill="#1e40af">数据库xxdb2</text>
+<line x1="370" y1="140" x2="418" y2="140" stroke="#16a34a" stroke-width="2" marker-end="url(#ar5)"/>
+<text x="394" y="130" text-anchor="middle" font-size="10" fill="#166534" font-weight="600">同步复制</text>
+<line x1="560" y1="140" x2="608" y2="140" stroke="#d97706" stroke-width="2" marker-end="url(#ar5)"/>
+<text x="584" y="122" text-anchor="middle" font-size="10" fill="#92400e" font-weight="600">同步或</text><text x="584" y="134" text-anchor="middle" font-size="10" fill="#92400e" font-weight="600">异步复制</text>
+<line x1="300" y1="240" x2="300" y2="278" stroke="#64748b" stroke-width="1.2"/><line x1="490" y1="240" x2="490" y2="278" stroke="#64748b" stroke-width="1.2"/><line x1="680" y1="240" x2="680" y2="278" stroke="#64748b" stroke-width="1.2"/>
+<rect x="780" y="90" width="80" height="100" fill="#f1f5f9" stroke="#64748b" stroke-width="2" rx="8"/>
+<rect x="795" y="115" width="25" height="38" fill="#94a3b8" rx="3"/><ellipse cx="838" cy="140" rx="13" ry="17" fill="#cbd5e1" stroke="#64748b"/>
+<text x="820" y="170" text-anchor="middle" font-size="10" fill="#334155" font-weight="600">域服务器</text><text x="820" y="183" text-anchor="middle" font-size="10" fill="#334155">DNS</text>
+<rect x="350" y="360" width="350" height="45" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="525" y="380" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">可用性组侦听器（Listener）</text>
+<text x="525" y="398" text-anchor="middle" font-size="11" fill="#1e40af">客户端通过侦听器名连接，自动路由主副本；只读请求路由辅助副本</text>
+</svg>`;
+SVG.logShipping=`<svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar6" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#0ea5e9"/></marker></defs>
+<rect x="400" y="20" width="80" height="70" fill="#0ea5e9" rx="6"/><text x="440" y="60" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">Monitor</text>
+<line x1="440" y1="90" x2="440" y2="140" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="4,3"/>
+<rect x="60" y="140" width="130" height="130" fill="#0ea5e9" rx="8"/>
+<text x="125" y="165" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">Primary</text>
+<rect x="85" y="180" width="30" height="50" fill="#0284c7" rx="3"/><ellipse cx="140" cy="210" rx="16" ry="20" fill="#7dd3fc" stroke="#0284c7"/>
+<text x="125" y="258" text-anchor="middle" font-size="11" fill="#fff">backup</text>
+<rect x="320" y="220" width="100" height="60" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2" rx="8"/>
+<text x="370" y="248" text-anchor="middle" font-size="12" font-weight="700" fill="#075985">Backup share</text><text x="370" y="268" text-anchor="middle" font-size="10" fill="#075985">备份共享</text>
+<rect x="540" y="140" width="110" height="130" fill="#94a3b8" rx="8"/>
+<text x="595" y="165" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">Secondary</text>
+<rect x="562" y="180" width="28" height="48" fill="#64748b" rx="3"/><ellipse cx="612" cy="208" rx="15" ry="19" fill="#cbd5e1" stroke="#64748b"/>
+<text x="595" y="258" text-anchor="middle" font-size="11" fill="#fff">restore</text>
+<rect x="700" y="140" width="110" height="130" fill="#94a3b8" rx="8"/>
+<text x="755" y="165" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">Secondary</text>
+<rect x="722" y="180" width="28" height="48" fill="#64748b" rx="3"/><ellipse cx="772" cy="208" rx="15" ry="19" fill="#cbd5e1" stroke="#64748b"/>
+<text x="755" y="258" text-anchor="middle" font-size="11" fill="#fff">restore</text>
+<line x1="190" y1="250" x2="315" y2="250" stroke="#0ea5e9" stroke-width="2" marker-end="url(#ar6)"/>
+<text x="252" y="242" text-anchor="middle" font-size="11" font-weight="700" fill="#0284c7">backup</text>
+<line x1="420" y1="250" x2="535" y2="250" stroke="#0ea5e9" stroke-width="2" marker-end="url(#ar6)"/>
+<text x="477" y="242" text-anchor="middle" font-size="11" font-weight="700" fill="#0284c7">copy</text>
+<line x1="420" y1="250" x2="695" y2="250" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ar6)"/>
+<text x="660" y="240" text-anchor="middle" font-size="10" font-weight="700" fill="#0284c7">copy</text>
+<rect x="60" y="300" width="750" height="65" fill="#f8fafc" stroke="#cbd5e1" rx="6"/>
+<text x="435" y="322" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a5f">四类作业</text>
+<text x="435" y="342" text-anchor="middle" font-size="11" fill="#475569">①备份作业（主库备份事务日志）→ ②复制作业（复制到辅助服务器）→ ③还原作业（辅助库还原日志）→ ④警报作业（失败时警报）</text>
+<text x="435" y="359" text-anchor="middle" font-size="11" fill="#dc2626">缺点：异步延迟可能丢数据 · 无 VIP · 不可自动故障转移 · 切换不可逆</text>
+</svg>`;
+SVG.replication=`<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar7" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#64748b"/></marker></defs>
+<rect x="30" y="100" width="200" height="200" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="130" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">Publisher 发布服务器</text>
+<rect x="55" y="145" width="150" height="100" fill="#dcfce7" stroke="#16a34a" rx="6"/>
+<text x="130" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#166534">Publication</text>
+<rect x="110" y="180" width="25" height="40" fill="#16a34a" rx="3"/><ellipse cx="165" cy="205" rx="14" ry="18" fill="#86efac" stroke="#16a34a"/>
+<text x="130" y="260" text-anchor="middle" font-size="10" fill="#166534">发布数据库 + Articles</text><text x="130" y="275" text-anchor="middle" font-size="10" fill="#166534">Log Reader Agent</text>
+<rect x="350" y="100" width="200" height="200" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="8"/>
+<text x="450" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">Distributor 分发服务器</text>
+<rect x="375" y="145" width="150" height="100" fill="#fef9c3" stroke="#d97706" rx="6"/>
+<text x="450" y="168" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Distribution database</text>
+<rect x="430" y="180" width="25" height="40" fill="#d97706" rx="3"/><ellipse cx="485" cy="205" rx="14" ry="18" fill="#fde68a" stroke="#d97706"/>
+<text x="450" y="240" text-anchor="middle" font-size="10" fill="#92400e">中转队列</text><text x="450" y="260" text-anchor="middle" font-size="10" fill="#92400e">Distribution Agent</text>
+<rect x="670" y="100" width="200" height="200" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="770" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">Subscriber 订阅服务器</text>
+<rect x="695" y="145" width="150" height="100" fill="#dbeafe" stroke="#3b82f6" rx="6"/>
+<text x="770" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#1e3a8a">Subscription</text>
+<rect x="750" y="180" width="25" height="40" fill="#3b82f6" rx="3"/><ellipse cx="805" cy="205" rx="14" ry="18" fill="#93c5fd" stroke="#3b82f6"/>
+<text x="770" y="260" text-anchor="middle" font-size="10" fill="#1e3a8a">订阅数据库</text>
+<line x1="230" y1="195" x2="348" y2="195" stroke="#16a34a" stroke-width="2.5" marker-end="url(#ar7)"/>
+<text x="289" y="185" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">Log Reader</text>
+<line x1="550" y1="195" x2="668" y2="195" stroke="#d97706" stroke-width="2.5" marker-end="url(#ar7)"/>
+<text x="609" y="185" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">Distribution</text>
+<text x="450" y="330" text-anchor="middle" font-size="11" fill="#64748b">原理：日志读取器读取发布库事务日志 → 分发到分发库 → 分发代理读取并应用到订阅库</text>
+<text x="450" y="352" text-anchor="middle" font-size="11" fill="#dc2626">限制：表必须有主键 · 不支持自动故障转移 · 不适合做高可用 · 同步开销较大</text>
+</svg>`;
+SVG.mirroring=`<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar8" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#3b82f6"/></marker></defs>
+<rect x="400" y="25" width="100" height="60" fill="#0ea5e9" rx="8"/>
+<text x="450" y="50" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">Witness</text><text x="450" y="68" text-anchor="middle" font-size="10" fill="#e0f2fe">见证服务器</text>
+<rect x="120" y="150" width="200" height="200" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="220" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">Principal 主体服务器</text>
+<rect x="170" y="200" width="35" height="80" fill="#16a34a" rx="3"/><ellipse cx="250" cy="245" rx="22" ry="32" fill="#86efac" stroke="#16a34a"/>
+<rect x="200" y="295" width="40" height="35" fill="#16a34a" rx="3"/>
+<rect x="580" y="150" width="200" height="200" fill="#f1f5f9" stroke="#64748b" stroke-width="2" rx="8"/>
+<text x="680" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">Mirror 镜像服务器</text>
+<rect x="630" y="200" width="35" height="80" fill="#64748b" rx="3"/><ellipse cx="710" cy="245" rx="22" ry="32" fill="#cbd5e1" stroke="#64748b"/>
+<rect x="660" y="295" width="40" height="35" fill="#64748b" rx="3"/>
+<line x1="320" y1="230" x2="578" y2="230" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#ar8)"/>
+<line x1="578" y1="270" x2="322" y2="270" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ar8)"/>
+<text x="450" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a8a">日志块同步（安全模式返回ACK）</text>
+<text x="450" y="290" text-anchor="middle" font-size="11" fill="#64748b">高安全=同步提交（不丢数据）/ 高性能=异步提交</text>
+<line x1="450" y1="85" x2="220" y2="148" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+<line x1="450" y1="85" x2="680" y2="148" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="450" y="120" text-anchor="middle" font-size="10" fill="#0284c7">见证仲裁，自动故障转移</text>
+<text x="450" y="375" text-anchor="middle" font-size="11" fill="#dc2626">限制：仅一主一从 · 镜像副本不可读（需快照）· 版本要求相同 · 不支持分布式事务 · 已弃用</text>
+</svg>`;
+SVG.failoverMode=`<svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<line x1="180" y1="40" x2="180" y2="300" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6,4"/>
+<text x="90" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a5f">可用性模式</text>
+<text x="290" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a5f">故障转移类型</text>
+<rect x="50" y="80" width="120" height="44" fill="#3b82f6" rx="8"/><text x="110" y="108" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">同步提交</text>
+<rect x="250" y="65" width="110" height="36" fill="#16a34a" rx="8"/><text x="305" y="89" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">自动转移</text>
+<rect x="250" y="115" width="110" height="36" fill="#f59e0b" rx="8"/><text x="305" y="139" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">手动转移</text>
+<line x1="170" y1="92" x2="248" y2="83" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="4,3"/>
+<line x1="170" y1="108" x2="248" y2="128" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="4,3"/>
+<text x="430" y="92" font-size="12" fill="#166534" font-weight="600">同步提交 &amp; 自动转移：</text>
+<text x="430" y="110" font-size="12" fill="#166534">自动故障转移，不丢数据</text>
+<text x="430" y="148" font-size="12" fill="#92400e" font-weight="600">同步提交 &amp; 手动转移：</text>
+<text x="430" y="166" font-size="12" fill="#92400e">手动故障转移，不丢数据</text>
+<rect x="50" y="220" width="120" height="44" fill="#f59e0b" rx="8"/><text x="110" y="248" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">异步提交</text>
+<rect x="250" y="225" width="110" height="36" fill="#f59e0b" rx="8"/><text x="305" y="249" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">手动转移</text>
+<line x1="170" y1="242" x2="248" y2="243" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="4,3"/>
+<text x="430" y="235" font-size="12" fill="#92400e" font-weight="600">异步提交 &amp; 手动转移：</text>
+<text x="430" y="253" font-size="12" fill="#dc2626">手动故障转移，可能丢失数据</text>
+<rect x="50" y="290" width="600" height="38" fill="#eff6ff" stroke="#3b82f6" rx="6"/>
+<text x="350" y="314" text-anchor="middle" font-size="11" fill="#1e3a8a">自动故障转移需满足：同步提交 + 两副本同步正常 + 配置自动故障转移；异步模式只能手动强制转移</text>
+</svg>`;
+SVG.backupPlan=`<svg viewBox="0 0 820 340" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<text x="180" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#166534">主副本 PRIMARY</text>
+<text x="540" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#92400e">辅助副本 SECONDARY</text>
+<rect x="60" y="50" width="240" height="44" fill="#3b82f6" rx="8"/><text x="180" y="78" text-anchor="middle" font-size="13" fill="#fff">完整备份 / copy_only</text>
+<rect x="340" y="50" width="240" height="44" fill="#f59e0b" rx="8"/><text x="460" y="78" text-anchor="middle" font-size="13" fill="#fff">完整备份 / copy_only</text>
+<rect x="60" y="110" width="240" height="44" fill="#3b82f6" rx="8"/><text x="180" y="138" text-anchor="middle" font-size="13" fill="#fff">差异备份 / copy_only</text>
+<rect x="340" y="110" width="240" height="44" fill="#ef4444" rx="8"/><text x="460" y="138" text-anchor="middle" font-size="13" fill="#fff">日志备份</text>
+<rect x="60" y="170" width="240" height="44" fill="#3b82f6" rx="8"/><text x="180" y="198" text-anchor="middle" font-size="13" fill="#fff">日志备份 / copy_only</text>
+<circle cx="700" cy="100" r="28" fill="#0ea5e9"/><text x="700" y="106" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">VIP</text>
+<rect x="630" y="150" width="80" height="36" fill="#d1fae5" stroke="#16a34a" rx="5"/><text x="670" y="173" text-anchor="middle" font-size="11" fill="#166534">PRIMARY</text>
+<rect x="720" y="150" width="80" height="36" fill="#fef3c7" stroke="#d97706" rx="5"/><text x="760" y="173" text-anchor="middle" font-size="11" fill="#92400e">SECONDARY</text>
+<line x1="700" y1="128" x2="670" y2="148" stroke="#0ea5e9" stroke-width="1.5"/><line x1="700" y1="128" x2="760" y2="148" stroke="#0ea5e9" stroke-width="1.5"/>
+<rect x="60" y="240" width="700" height="44" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="410" y="260" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">推荐备份方案</text>
+<text x="410" y="278" text-anchor="middle" font-size="12" fill="#166534">辅助副本：完整备份（WITH COPY_ONLY）+ 日志备份，减轻主库压力</text>
+<text x="410" y="315" text-anchor="middle" font-size="11" fill="#64748b">查询当前副本是否首选备份：sys.fn_hadr_backup_is_preferred_replica</text>
+</svg>`;
+SVG.readOnlyRouting=`<svg viewBox="0 0 860 350" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar12" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#0ea5e9"/></marker></defs>
+<circle cx="430" cy="40" r="26" fill="#0ea5e9"/><text x="430" y="46" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">VIP</text>
+<rect x="80" y="130" width="140" height="120" fill="#d1fae5" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="150" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Primary</text>
+<rect x="120" y="175" width="28" height="45" fill="#16a34a" rx="3"/><ellipse cx="172" cy="205" rx="14" ry="18" fill="#86efac" stroke="#16a34a"/>
+<rect x="340" y="130" width="140" height="120" fill="#f1f5f9" stroke="#64748b" stroke-width="2" rx="8"/>
+<text x="410" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">Secondary</text>
+<rect x="380" y="175" width="28" height="45" fill="#64748b" rx="3"/><ellipse cx="432" cy="205" rx="14" ry="18" fill="#cbd5e1" stroke="#64748b"/>
+<rect x="620" y="130" width="140" height="120" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="690" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">Secondary</text>
+<rect x="660" y="175" width="28" height="45" fill="#3b82f6" rx="3"/><ellipse cx="712" cy="205" rx="14" ry="18" fill="#93c5fd" stroke="#3b82f6"/>
+<line x1="430" y1="66" x2="150" y2="128" stroke="#16a34a" stroke-width="2"/>
+<text x="230" y="100" font-size="11" fill="#166534" font-weight="600">读写（默认）</text>
+<line x1="430" y1="66" x2="690" y2="128" stroke="#0ea5e9" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#ar12)"/>
+<text x="620" y="95" font-size="11" fill="#0284c7" font-weight="700">Read 只读路由</text>
+<line x1="430" y1="66" x2="410" y2="128" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="380" y="100" font-size="10" fill="#64748b">只读</text>
+<rect x="80" y="270" width="680" height="30" fill="#f8fafc" stroke="#94a3b8" rx="5"/>
+<text x="420" y="290" text-anchor="middle" font-size="12" fill="#475569">Windows Server Failover Clustering（WSFC）</text>
+<rect x="60" y="315" width="740" height="30" fill="#fef2f2" stroke="#ef4444" rx="5"/>
+<text x="430" y="335" text-anchor="middle" font-size="11" fill="#991b1b">特别注意：只读路由不是读写分离、不是负载均衡，仅只读高可用，需连接串设置 ApplicationIntent=ReadOnly</text>
+</svg>`;
+SVG.autoSeeding=`<svg viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,sans-serif">
+<defs><marker id="ar13" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6Z" fill="#0ea5e9"/></marker></defs>
+<circle cx="430" cy="35" r="24" fill="#0ea5e9"/><text x="430" y="40" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">VIP</text>
+<rect x="80" y="90" width="250" height="200" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="8"/>
+<text x="205" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">Primary 主副本</text>
+<rect x="100" y="135" width="210" height="32" fill="#dcfce7" stroke="#16a34a" rx="4"/><text x="205" y="156" text-anchor="middle" font-size="11" fill="#166534">Create Database</text>
+<rect x="100" y="175" width="210" height="32" fill="#dcfce7" stroke="#16a34a" rx="4"/><text x="205" y="196" text-anchor="middle" font-size="11" fill="#166534">Backup Database</text>
+<rect x="100" y="215" width="210" height="32" fill="#dcfce7" stroke="#16a34a" rx="4"/><text x="205" y="236" text-anchor="middle" font-size="11" fill="#166534">Backup Log</text>
+<rect x="100" y="255" width="210" height="26" fill="#dcfce7" stroke="#16a34a" rx="4"/><text x="205" y="273" text-anchor="middle" font-size="11" fill="#166534">Add DB to AG</text>
+<rect x="530" y="90" width="250" height="200" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" rx="8"/>
+<text x="655" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">Secondary 辅助副本</text>
+<rect x="550" y="135" width="210" height="32" fill="#dbeafe" stroke="#3b82f6" rx="4"/><text x="655" y="156" text-anchor="middle" font-size="11" fill="#1e3a8a">Restore Database</text>
+<rect x="550" y="175" width="210" height="32" fill="#dbeafe" stroke="#3b82f6" rx="4"/><text x="655" y="196" text-anchor="middle" font-size="11" fill="#1e3a8a">Restore Log</text>
+<rect x="550" y="215" width="210" height="32" fill="#dbeafe" stroke="#3b82f6" rx="4"/><text x="655" y="236" text-anchor="middle" font-size="11" fill="#1e3a8a">SET HADR</text>
+<rect x="550" y="255" width="210" height="26" fill="#dbeafe" stroke="#3b82f6" rx="4"/><text x="655" y="273" text-anchor="middle" font-size="10" fill="#1e3a8a">自动完成初始化</text>
+<line x1="330" y1="190" x2="528" y2="190" stroke="#0ea5e9" stroke-width="2.5" marker-end="url(#ar13)"/>
+<text x="429" y="180" text-anchor="middle" font-size="11" font-weight="700" fill="#0284c7">日志流自动传输</text>
+<line x1="430" y1="59" x2="205" y2="88" stroke="#0ea5e9" stroke-width="1.2"/><line x1="430" y1="59" x2="655" y2="88" stroke="#0ea5e9" stroke-width="1.2"/>
+</svg>`;
+</script>
+<script>
+const knowledge=[
+{id:"m1",title:"模块一 · 数据库基础知识",icon:"📖",mod:1,page:"P1-10",desc:"SQL Server 数据库基础概念、市场定位、版本分类、版本发展史、核心对象与 T-SQL 基础语法。",children:[
+{id:"m1-1",title:"数据库简介与应用场景",icon:"📌",page:"P3-4",desc:"SQL Server 是微软推出的关系型数据库管理系统，全球市场排名前三。",details:[
+{type:"list",title:"公司与产品定位",items:["微软（Microsoft）由<strong>比尔·盖茨与保罗·艾伦</strong>于 1975 年创办，总部位于美国华盛顿州，是世界 PC 软件开发的先导","微软是全球最大的电脑软件提供商，<strong>全球软件企业排名第一</strong>（第二、三分别为 Oracle、IBM），最著名产品为 Windows 操作系统和 Office 系列","SQL Server 是微软推出的<strong>关系型数据库管理系统（RDBMS）</strong>，可运行于 Windows 各版本的大型多处理器服务器，也推出了基于 <strong>Linux 平台</strong>的版本","SQL Server 是一个全面的数据库平台，使用集成的<strong>商业智能（BI）</strong>工具提供企业级数据管理"]},
+{type:"list",title:"市场份额与应用场景",items:["全球数据库使用关注度排名前三：<strong>Oracle 第一、MySQL 第二、SQL Server 第三</strong>；功能与 Oracle、DB2 并列全球三大数据库","2011 年左右市场份额：<strong>Oracle 48.8%、DB2 20%、SQL Server 17%</strong>","主要面向<strong>中小企业</strong>，最大优势是集成微软各类产品资源、强大可视化界面、高度集成的管理开发工具，在快速构建 BI 方面颇有建树","典型应用：<strong>自建 ERP 系统、商业智能、垂直领域零售商、餐饮、事业单位</strong>等；微软提供整套软件方案，不缺钱但缺 IT 人才的中小企业会偏爱 SQL Server"]},
+{type:"info",text:"与 Oracle 的核心区别：<strong>SQL Server 一个实例可包含多个数据库；Oracle 一个实例对应一个数据库</strong>。"}]},
+{id:"m1-2",title:"版本分类",icon:"🏷️",page:"P5-6",desc:"SQL Server 五个常见版本及其容量限制与适用场景。",details:[
+{type:"grid",cols:[
+{h:"Enterprise 企业版",p:"高级版本，提供全面的高端数据中心功能，性能极为快捷，为关键任务工作负荷提供较高服务级别。<strong>最大支持 524PB 数据量</strong>"},
+{h:"Standard 标准版",p:"提供基本数据管理，使部门和小型组织顺利运行应用，支持常用开发工具用于本地和云部署，以最少 IT 资源获得高效管理"},
+{h:"Web 版",p:"面向 Web 宿主和 Web VAP，提供从小规模到大规模 Web 资产的可伸缩性、经济性和可管理性，<strong>总拥有成本较低</strong>"},
+{h:"Developer 开发版",p:"含企业版全部功能，但有许可限制，<strong>只能用于开发和测试，不能用作生产服务器</strong>，是构建和测试应用人员的理想之选"},
+{h:"Express 版",p:"入门级<strong>免费</strong>数据库，学习和构建桌面及小型服务器应用的理想选择，<strong>最大支持 10GB 数据量</strong>，可无缝升级到更高端版本"},
+{h:"版本演进",p:"2008 提出 Always On 概念 → 2012 引入可用性组（1拖4）→ 2016 引入自动种子 → 2019 为当前实战版本"}]}]},
+{id:"m1-3",title:"版本发展史（1988-2019）",icon:"📅",page:"P7-10",desc:"从 1.0 到 2019 的完整版本演进，是理解各高可用特性来源的关键时间线。",details:[
+{type:"steps",title:"SQL Server 版本发展时间线",steps:[
+{t:"1988 · 1.0",p:"由 Ashton-Tate、Sybase、Microsoft 三家联合开发（背景：1982 Oracle 发布、1983 IBM 发布 DB2）"},
+{t:"1992 · 4.2",p:"当时只支持 OS/2 操作系统（1993 年重新命名为 Windows NT 3.1）"},
+{t:"1994 · 买断源码",p:"微软从 Sybase 买断源码，双方在数据库开发上的合作中止"},
+{t:"1995 · 6.0",p:"<strong>第一个完全由微软自行开发</strong>的产品；1996 年发布 6.5"},
+{t:"1998 · 7.0",p:"版本被重写，减少管理负担，引入 OLAP 服务（分析服务）"},
+{t:"2000",p:"支持多实例与排序规则，数据库群集、日志传送大量使用，引入数据挖掘，支持 64 位处理器（IA64）"},
+{t:"2005",p:"产品进入青壮年；支持 XML 存储查询，用 SSMS 替换旧版企业管理器，增强 T-SQL，<strong>支持数据库镜像</strong>，表和索引分区，语句级重新编译，列加密"},
+{t:"2008",p:"<strong>提出 Always On 概念</strong>，增强数据库群集；可热插拔 CPU；空间数据类型、日期时间类型；PowerShell for SQL Server；数据压缩、数据加密"},
+{t:"2008 R2",p:"增强多服务器管理能力，引入数据层应用程序"},
+{t:"2012",p:"<strong>引入 AlwaysOn 高可用组（1拖4、读写分离）</strong>；列存储索引；新增 Sequence、错误捕获、开窗函数、分析函数；FileTable"},
+{t:"2014",p:"增加内存优化表（内存中 OLTP），云增强，备份还原增强，AlwaysOn 增强，增量统计信息"},
+{t:"2016",p:"安装时可配置多个 tempDB 文件；仪表板显示耗时/内存/CPU 最多的查询；Azure 混合备份；<strong>AlwaysOn 增强、引入自动种子</strong>；层级安全；时态数据库"},
+{t:"2017",p:"数据智能化管理；<strong>跨平台支持 Linux</strong>；支持 Python、机器学习；提升 BI 分析；安全增强"},
+{t:"2019",p:"内置大数据、分析所有类型数据；TempDB 可配置为内存优化；智能查询处理；支持 UTF-8；存储过程中执行 Java；加速数据库恢复（ADR）；增强加密；云整合、数据虚拟化"}]}]},
+{id:"m1-4",title:"数据库核心对象",icon:"🗄️",page:"P15",desc:"SQL Server 中最基础的对象体系，Schema 是这些对象的容器。",details:[
+{type:"list",items:["<strong>表（Table）</strong>：数据存储的基本单位，由行和列组成","<strong>视图（View）</strong>：虚拟表，基于查询结果，不物理存储数据","<strong>存储过程（Procedure）</strong>：预编译 T-SQL 代码块，可重复执行","<strong>函数（Function）</strong>：返回标量值或表值的可复用代码","<strong>触发器（Trigger）</strong>：INSERT/UPDATE/DELETE 事件时自动执行","<strong>索引（Index）</strong>：加速数据检索，分聚集索引和非聚集索引","<strong>约束（Constraint）</strong>：主键、外键、唯一、检查、默认值"]},
+{type:"tip",text:"记忆口诀：<strong>表存数据、视图看数据、过程跑逻辑、函数算结果、触发器自动响应、索引提速度、约束保完整</strong>。"}]},
+{id:"m1-5",title:"T-SQL 基础语法",icon:"⌨️",page:"P9-10",desc:"增删改查四大基本语句。",details:[
+{type:"code",title:"四大基本操作",code:`-- 查询
+SELECT 列名 FROM 表名 WHERE 条件 ORDER BY 列名;
+-- 插入
+INSERT INTO 表名(列1,列2) VALUES(值1,值2);
+-- 更新
+UPDATE 表名 SET 列1=值1 WHERE 条件;
+-- 删除
+DELETE FROM 表名 WHERE 条件;`},
+{type:"warn",text:"<strong>安全铁律</strong>：UPDATE 和 DELETE 必须带 WHERE！执行前先 SELECT 确认影响行数。生产环境先 BEGIN TRANSACTION 再 COMMIT。"}]}
+]},
+{id:"m2",title:"模块二 · 数据库体系架构",icon:"🏗️",mod:2,page:"P11-25",desc:"从逻辑层级到核心引擎，再到内存结构，完整理解 SQL Server 的内部运行机制。",children:[
+{id:"m2-1",title:"逻辑体系架构（层级图）",icon:"🪜",page:"P12",desc:"从客户端到数据库对象的完整层级关系，是理解 SQL Server 的总纲。",details:[
+{type:"diagram",title:"SQL Server 体系架构层级图",page:"P12",svg:"hierarchy"},
+{type:"list",title:"层级关系（从上到下）",items:["<strong>客户端/应用端</strong>：通过 Write/Read 请求连接数据库主机","<strong>数据库主机</strong>：承载一个或多个实例","<strong>实例（Instance）</strong>：安装的一个 SQL Server 引擎/服务，同一台机器可装多个独立实例，如 SQLServer1、SQLServer2","<strong>业务数据库</strong>：xxdb1、xxdb2 等用户库，每个实例可含多个","<strong>系统数据库</strong>：master、model、msdb、tempdb，每个实例自带 4 个","<strong>文件组 / 日志文件</strong>：文件组组织数据文件，日志文件独立","<strong>数据文件</strong>：mdf/ndf，隶属于文件组","<strong>Schema</strong>：对象容器，默认 dbo，包含表、索引、视图、过程、函数"]},
+{type:"info",text:"数据流：客户端 →（Write/Read）→ 主机 → 实例 → 数据库 → 文件组/日志 → 数据文件 → Schema 对象。"}]},
+{id:"m2-2",title:"实例与数据库概念",icon:"🧩",page:"P13",desc:"实例和数据库的关系，以及与 Oracle 的关键差异。",details:[
+{type:"grid",cols:[
+{h:"实例 Instance",p:"安装的一个 SQL Server 数据库引擎/服务；同一台计算机可安装多个实例，彼此完全独立。<strong>SQL Server 服务器 = 一个实例 + 多个数据库</strong>"},
+{h:"数据库 Database",p:"物理上由数据文件和事务日志文件组成，是表、索引、视图、存储过程等各种对象的存放容器"},
+{h:"数据文件",p:"存放数据库中的数据（mdf/ndf）"},
+{h:"事务日志文件",p:"存放用户对数据库的操作记录，用于实例恢复或介质恢复（类似 Oracle 的 redo+undo，ldf）"}]},
+{type:"info",text:"对照：<strong>Oracle 服务器 = 一个 Oracle 实例 + 一个数据库</strong>；SQL Server 一个实例下可挂多个数据库。"}]},
+{id:"m2-3",title:"系统数据库与 Schema",icon:"🗃️",page:"P14-15",desc:"4 个默认系统数据库的职责，以及 Schema 对象容器概念。",details:[
+{type:"grid",title:"四大系统数据库（每个实例自带）",cols:[
+{h:"master",p:"保存实例范围内的<strong>元数据信息、服务器配置、所有数据库信息</strong>以及初始化信息"},
+{h:"model",p:"<strong>新数据库的模板</strong>，新建库时以它为蓝本"},
+{h:"tempdb",p:"保存临时数据的地方，比如<strong>查询排序</strong>、临时表；实例重启会重建"},
+{h:"msdb",p:"SQL Server Agent 保存数据的地方，负责自动化处理，记录<strong>作业（job）、计划（schedule）、警报</strong>等实体信息"}]},
+{type:"info",text:"<strong>Schema（模式架构）</strong>：一个数据库包含多个架构，每个架构又包含多个对象，可看作表/索引/视图/存储过程等对象的容器；<strong>SQL Server 默认 Schema 为 dbo</strong>。"}]},
+{id:"m2-4",title:"核心引擎四层架构",icon:"⚙️",page:"P17-23",desc:"协议层 → 关系引擎 → 存储引擎 → SQLOS，各组件职责与查询执行的完整路径。",details:[
+{type:"diagram",title:"SQL Server 核心架构图（数据流）",page:"P18",svg:"coreEngine"},
+{type:"grid",title:"四大组件（对应 P17 英文架构图）",cols:[
+{h:"① 协议层 Protocols",p:"接收 TDS 包拆包找出请求，结果打包为 TDS 返回；含 SQL Server 网络接口"},
+{h:"② 关系引擎 Query Processor",p:"Parser 解析器、Optimizer 优化器、SQL Manager、Database Manager、Query Executor 查询执行器"},
+{h:"③ 存储引擎 Storage Engine",p:"Transaction Services（Lock/File/Buffer Manager）、Access Methods（Row/Indexes/Pages/Allocations/Versions）、Utilities（Bulk Load、DBCC、Backup/Restore）"},
+{h:"④ SQLOS 应用层",p:"Deadlock/Resource Monitor、Lazy Writer、Scheduler Monitor、Buffer Pool、Memory Manager、Scheduling、Lock Manager、Sync Services、I/O；外部组件 CLR/MDAC"}]},
+{type:"list",title:"协议层（P19）",items:["接收 <strong>TDS 包（表格数据流，用于与数据库服务器交互的协议）</strong>，拆包找出里面的请求，传给命令分析器；结果和状态消息打包为 TDS 消息发回客户端","<strong>共享内存（Shared Memory）</strong>：只能用于本地","<strong>TCP/IP</strong>：指定 IP 和端口（如 <strong>1433</strong>）连接","<strong>命名管道（Named Pipes）</strong>：一般使用 TCP <strong>445</strong> 端口"]},
+{type:"list",title:"关系引擎 / 查询处理器（P20）",items:["<strong>命令分析器</strong>：处理 T-SQL 语言事件，检查查询语法、准备查询树，流程为：① 检查语法，错误则经协议层返回客户端 → ② 语法有效则查找已有计划或生成查询计划 → ③ 找到已有计划则从执行计划缓存读取传给执行器 → ④ 没有计划则创建查询树（执行计划）传给优化器，同时缓存到计划缓存","<strong>查询优化器</strong>：负责查询优化和执行，包含 SQL Server 将如何执行这段代码的细节","<strong>查询执行器</strong>：对执行（查询计划）负责"]},
+{type:"list",title:"存储引擎（P21-22，负责所有数据 IO）",items:["<strong>存取方法</strong>：行和索引操作、页分配操作、版本操作；处理行/索引/页/分配/行版本的修改 IO 请求，并向缓存区管理器传递请求检索页","<strong>缓存区管理器三步读页</strong>：① 在缓冲池检查该页是否已缓存，命中即传回 → ② 未缓存则从磁盘获取该页并放入数据缓存，再传回 → ③ 存取方法把结果集送回关系引擎发回客户端","<strong>事务管理器</strong>：处理 ACID（原子性、一致性、隔离性、持久性）的数据锁和管理事务日志，由锁管理器、日志管理器组成","<strong>锁管理器</strong>：控制表、页、行和系统数据的锁定，多用户环境下解决冲突，为数据提供并发性","<strong>日志管理器（WAL 预写日志）</strong>：把修改写到事务日志并物理落盘，日志确认写入后才修改实际数据；崩溃后可重做（前滚）已提交改变","<strong>实用工具</strong>：批量加载、DBCC 命令、全文本索引管理、备份和还原命令"]},
+{type:"list",title:"SQLOS 与调度（P23）",items:["SQLOS 是位于引擎最底层的独立应用层，负责<strong>调度、内存管理、同步、内存代理、错误处理、死锁检测、扩展事件、异步 I/O</strong>","<strong>Lazy Writer（惰性写入器）</strong>：管理缓冲区，保证 SQLOS 有空闲缓存块和系统有一定可用内存","<strong>CheckPoint（检查点）</strong>：将脏页写入数据文件，<strong>减少服务器恢复时间（Recovery Time）</strong>","<strong>调度模式</strong>（对应 Oracle 共享服务器）：每个 CPU 启动一个 Scheduler，请求交给当前负荷最低的 Scheduler；无空闲 Work 线程则新建一个处理，<strong>Work 线程连续空闲 15 分钟会被销毁并释放内存</strong>"]},
+{type:"info",text:"<strong>WAL 预写日志</strong>：事务日志先物理落盘，然后才修改数据页。崩溃后可前滚已提交事务、回滚未提交事务。"}]},
+{id:"m2-5",title:"内存结构",icon:"💾",page:"P24-25",desc:"SQL Server 内存构成、Buffer Cache 组成，以及与 Oracle 的对照。",details:[
+{type:"diagram",title:"SQL Server 内存结构图",page:"P24",svg:"memory"},
+{type:"list",title:"内存构成（对照 Oracle）",items:["<strong>Buffer Cache（Buffer Pool）</strong>：内存主体，相当于 Oracle 的 <strong>SGA</strong>","<strong>Data Cache</strong>：Buffer Cache 最大组成部分，存放由磁盘读取的数据，再次读取时不必读盘（对应 Oracle database buffer cache）","<strong>Plan Cache</strong>：存放编译过的执行计划（对应 Oracle shared pool 中的 library cache）","<strong>Query Workspace</strong>：查询工作区（排序、哈希等）；另有 <strong>Locks 锁</strong>、Other 其他","<strong>Thread Stacks</strong>：线程堆栈；<strong>MemToLeave Area</strong>：预留内存区域"]},
+{type:"list",title:"内存设置（P25）",items:["<strong>max server memory</strong>：设置 buffer cache 的上限","<strong>min server memory</strong>：设置 SQL Server 可释放内存的 buffer cache 下限","设置路径：SSMS → 服务器属性 → 内存；默认最大服务器内存为 <strong>2147483647 MB</strong>，最小为 0；<strong>使用 AWE 分配内存</strong>默认不勾选"]},
+{type:"warn",text:"生产环境务必设置 <strong>max server memory</strong>，为操作系统预留内存，避免内存压力导致系统卡顿。"}]},
+{id:"m2-6",title:"物理文件与其他文件",icon:"📁",page:"P16",desc:"SQL Server 没有控制文件、初始化参数文件、口令文件和归档日志，这是与 Oracle 的重要差异。",details:[
+{type:"list",items:["<strong>无控制文件</strong>：各数据库文件信息存储在 master 系统库以及用户数据库 primary 文件组的主数据文件中","<strong>无初始化参数文件</strong>：实例配置信息保存在 master 库；数据库配置信息保存在各自库 primary 文件组的主数据文件中","<strong>无口令文件</strong>：SQL Server 服务由操作系统启动，口令由操作系统维护","<strong>无归档日志文件</strong>"]},
+{type:"code",title:"错误日志文件位置（查看实例运行错误）",code:`\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log`}]}
+]},
+{id:"m3",title:"模块三 · 高可用方案对比",icon:"🛡️",mod:3,page:"P26-48",desc:"SQL Server 五种高可用技术架构对比，包含完整拓扑图、优缺点、适用场景与 T-SQL。",children:[
+{id:"m3-1",title:"方案总览与 RTO/RPO",icon:"⚖️",page:"P28,P36",desc:"SQL Server 高可用技术分类、复制类型及核心指标。",details:[
+{type:"list",title:"五大高可用方案（按级别）",items:["<strong>故障转移 HA 集群 FCI（实例级）</strong>：基于 WSFC + 共享存储","<strong>AlwaysOn 可用性组（数据库级）</strong>：多副本，推荐方案","<strong>日志传送 Log Shipping（数据库级）</strong>：备份 → 复制 → 还原","<strong>数据库镜像 Mirroring（数据库级）</strong>：已弃用，被 AlwaysOn 取代","<strong>复制 Replication（数据库级）</strong>：事务复制/快照/合并/对等复制"]},
+{type:"list",title:"高可用类型（P36）",items:["日志传送 Log Shipping；事务复制 Transactional Replication；数据库镜像；AlwaysOn FCI；AlwaysOn 可用性组","<strong>其他复制</strong>：快照复制、合并复制、对等复制、可更新订阅","<strong>复制特性</strong>：多源复制（多节点同步至单节点）、筛选复制（单节点分片同步至多节点）"]},
+{type:"info",text:"<strong>RTO</strong>（恢复时间目标）：故障后最长停机时间。<strong>RPO</strong>（恢复点目标）：最大数据丢失量。同步提交 RPO≈0，异步提交可能丢数据。"},
+{type:"warn",text:"<strong>从 SQL Server 2014 开始，生产环境基本不再使用单独的日志传送、镜像、复制架构，统一使用 AlwaysOn 高可用组。</strong>"}]},
+{id:"m3-2",title:"故障转移集群 FCI 架构",icon:"🔄",page:"P29-30,P40",desc:"实例级高可用，基于 Windows 故障转移集群 + 共享存储。",details:[
+{type:"diagram",title:"FCI 故障转移集群架构图",page:"P29",svg:"fci"},
+{type:"list",title:"应用场景（P30）",items:["硬件故障转移","SQL Server 服务故障转移","人工故障或其他故障"]},
+{type:"grid",title:"特性与优点（P40）",cols:[
+{h:"VIP 透明",p:"有 VIP 进行高可用，自动故障转移，<strong>秒级切换，对客户端透明</strong>"},
+{h:"实例级冗余",p:"实例级别的冗余，管理方便"},
+{h:"计算存储分离",p:"计算节点与存储分离（共享存储），支持<strong>跨子网高可用</strong>"}]},
+{type:"warn",text:"<strong>缺点</strong>：① 基于域环境和 Windows Cluster，增加维护成本；② 仅有一个计算节点可读写，其他节点不可访问，浪费硬件资源、无负载均衡；③ <strong>存储是单节点，无法防止 I/O 子系统故障</strong>。"}]},
+{id:"m3-3",title:"AlwaysOn 可用性组架构",icon:"⭐",page:"P31-32",desc:"数据库级高可用，替代镜像的企业级方案，是当前生产环境首选。",details:[
+{type:"diagram",title:"AlwaysOn 可用性组架构图",page:"P31",svg:"alwayson"},
+{type:"list",title:"核心介绍（P32）",items:["是一个提供<strong>替代数据库镜像</strong>的企业级高可用性和灾难恢复解决方案","SQL Server 2012 引入 AlwaysOn 可用性组，最大程度提高一组用户数据库的可用性，<strong>合并了故障转移、日志传送、镜像、复制</strong>技术","可用性组针对一组离散的用户数据库支持故障转移环境","一个可用性组支持<strong>一组读写主数据库 + 1~4 组对应辅助数据库</strong>","可使辅助数据库进行<strong>只读访问和/或某些备份操作</strong>","各节点安装独立 SQL Server 实例，<strong>不需要共享存储</strong>，通过侦听器（Listener）提供 VIP，依赖 WSFC 做故障检测和仲裁"]},
+{type:"warn",text:"<strong>从 2014 开始生产环境统一使用 AlwaysOn 高可用组</strong>，不再单独使用日志传送/镜像/复制。"}]},
+{id:"m3-4",title:"日志传送 Log Shipping",icon:"📤",page:"P33,P37",desc:"通过定时备份、复制、还原事务日志实现异步同步。",details:[
+{type:"diagram",title:"日志传送架构图",page:"P37",svg:"logShipping"},
+{type:"list",title:"功能与实现条件（P33）",items:["多台主从服务器定时备份同步；可实现负载均衡；可提供副本只读查询","<strong>数据库必须是完整备份模式</strong>","主服务器/辅助服务器/监视服务器的备份文件夹必须有读写权限","<strong>SQL Server Agent 代理服务必须启动</strong>"]},
+{type:"list",title:"四类作业（P37）",items:["<strong>备份作业</strong>：主服务器实例备份事务日志","<strong>复制作业</strong>：将日志文件复制到辅助服务器实例","<strong>还原作业</strong>：辅助服务器实例还原日志备份","<strong>警报作业</strong>：备份还原未成功时警报"]},
+{type:"good",text:"<strong>优点</strong>：数据库级备份还原同步；不限辅助节点；辅助节点临时可读；<strong>设置延迟备份还原可找回历史数据</strong>。"},
+{type:"warn",text:"<strong>缺点（7 条）</strong>：① 延迟同步，宕机丢数据；② 无 VIP，不可自动故障转移；③ 宕机恢复慢；④ 切换节点后不可逆，所有节点需重新配置；⑤ 切换需手动同步账户、代理作业等；⑥ 还原时辅助节点不可读；⑦ 依赖代理作业维护。"}]},
+{id:"m3-5",title:"事务复制 Replication",icon:"🔀",page:"P35,P38",desc:"发布-分发-订阅模式，基于事务日志同步。",details:[
+{type:"diagram",title:"事务复制架构图",page:"P38",svg:"replication"},
+{type:"list",title:"功能与好处（P35）",items:["支持负载均衡；支持副本读写操作；支持数据合并；支持故障转移","实现简单，数据同时同步几乎达到镜像；<strong>可以对某些表或表数据过滤进行复制</strong>"]},
+{type:"list",title:"原理三步（P38）",items:["<strong>发布服务器/发布数据库</strong>：事务日志记录并保留所有未分发的事务","<strong>分发服务器/分发数据库</strong>：作为转储队列，Log Reader Agent（日志读取器）读取发布库事务日志，标志并分发事务到分发库","<strong>订阅服务器/订阅数据库</strong>：Distribution Agent（分发代理）读取分发库事务记录并应用到订阅库"]},
+{type:"grid",title:"优点与缺点",cols:[
+{h:"优点",p:"逻辑同步；<strong>对象级别（表/视图/函数/存储过程）同步，灵活</strong>；不限辅助节点；辅助节点可读"},
+{h:"缺点",p:"<strong>表必须有主键</strong>；订阅对象可操作易数据不一致；同步开销大；大事务有延迟宕机丢数据；无 VIP 不可自动转移；切换不可逆；需手动同步账户/作业；依赖代理作业"}]},
+{type:"warn",text:"<strong>不支持故障自动切换，不适合做高可用</strong>。"}]},
+{id:"m3-6",title:"数据库镜像 Mirroring",icon:"🪞",page:"P34,P39",desc:"一主一从完整镜像，含见证服务器可自动切换，已被 AlwaysOn 取代。",details:[
+{type:"diagram",title:"数据库镜像架构图",page:"P39",svg:"mirroring"},
+{type:"list",title:"功能与实现条件（P34）",items:["实现数据库完整镜像；支持自动故障转移；确保数据完整性","支持同步或异步镜像，能实现快速故障转移","<strong>需要 3 台服务器</strong>：主体服务器、镜像服务器、见证服务器"]},
+{type:"list",title:"工作原理（P39）",items:["主库日志变化记录在日志缓冲区","固化到本地 LDF 时，日志进程把日志记录打包成<strong>日志块</strong>发送到镜像日志缓存","镜像固化日志到 LDF（高安全模式此时可返回确认 ACK）"]},
+{type:"list",title:"优点",items:["数据库级别同步；可<strong>同步提交（高安全，不丢数据）/异步提交（高性能）</strong>","自动故障转移（高安全模式 + 见证服务器）；手动故障转移切换方便快速","节点恢复后自动修复加入同步；对客户端透明，Driver 层支持"]},
+{type:"code",title:"客户端镜像连接串",code:`Server=ip1,port1; Failover Partner=ip2,port2;`},
+{type:"warn",text:"<strong>缺点</strong>：① 有且仅有一主一从两个副本；② 镜像副本不可读（可读方法：高安全模式 + 镜像库快照）；③ SQL Server 版本要求相同；④ 无 VIP，高可用需其他方法设置；⑤ 见证服务器仅作仲裁节点，不存储数据；⑥ 不支持分布式事务、不支持跨数据库事务。"}]},
+{id:"m3-7",title:"可用性模式与故障转移",icon:"🎚️",page:"P41-43",desc:"同步/异步模式与自动/手动转移的组合，以及五个故障转移级别。",details:[
+{type:"diagram",title:"可用性模式与故障转移类型",page:"P42",svg:"failoverMode"},
+{type:"table",title:"故障转移条件级别（Failure Condition Level，P41/P43）",head:["T-SQL值","级别","触发条件"],rows:[
+["1","一级","服务器关闭、SQL Server 服务停止。因没有从实例接收到 ACK，连接 WSFC 集群的可用性组租约到期"],
+["2","二级","服务器无响应。实例未连接到集群，且超出用户指定的运行状况检查超时阈值，副本处于失败状态"],
+["3","三级（默认）","出现严重 SQL Server 内部错误（孤立自旋锁、严重写访问冲突或过多转储）。<strong>这是默认级别</strong>"],
+["4","四级","出现中等 SQL Server 内部错误（SQL Server 内部资源池出现持久的内存不足）"],
+["5","五级","出现任何符合的失败条件（工作线程耗尽、无法解决的死锁），限制最多的级别"]]},
+{type:"code",title:"故障转移策略 T-SQL",code:`ALTER AVAILABILITY GROUP AG1 SET (FAILURE_CONDITION_LEVEL = 3);
+ALTER AVAILABILITY GROUP AG1 SET (HEALTH_CHECK_TIMEOUT = 30000);`}]},
+{id:"m3-8",title:"备份选项与只读路由",icon:"🔍",page:"P44-46",desc:"AlwaysOn 备份位置四选项、辅助副本备份方案，以及只读路由机制。",details:[
+{type:"table",title:"备份选项（P44，决定备份在哪类副本执行）",head:["备份选项","说明"],rows:[
+["优先辅助（默认）","备份应在辅助副本上发生，但主副本是唯一联机副本时除外（此时在主副本备份）。<strong>默认选项</strong>"],
+["仅辅助","备份永远不会在主副本执行；如果主副本是唯一联机副本，则备份不会发生"],
+["主要节点","备份始终在主副本发生；当需要辅助副本不支持的功能（如<strong>差异备份</strong>）时使用"],
+["任何副本","选择备份副本时忽略可用性副本角色，备份作业另按副本备份优先级、操作状态、已连接状态评估"]]},
+{type:"diagram",title:"备份方案",page:"P45",svg:"backupPlan"},
+{type:"code",title:"判断当前副本是否为首选备份副本",code:`sys.fn_hadr_backup_is_preferred_replica`},
+{type:"diagram",title:"只读路由架构图",page:"P46",svg:"readOnlyRouting"},
+{type:"code",title:"只读路由设置四步",code:`-- 1. 设置副本允许只读连接
+ALTER AVAILABILITY GROUP AG1 MODIFY REPLICA ON N'Instance'
+  WITH (ALLOW_CONNECTIONS = READ_ONLY);
+-- 2. 设置副本路由地址
+ALTER AVAILABILITY GROUP AG1 MODIFY REPLICA ON N'Instance'
+  WITH (READ_ONLY_ROUTING_URL = N'TCP://IP:1433');
+-- 3. 添加路由列表（访问顺序）
+ALTER AVAILABILITY GROUP AG1 MODIFY REPLICA ON N'Instance'
+  WITH (READ_ONLY_ROUTING_LIST = (N'Instance02',N'Instance01'));
+-- 4. 客户端连接串设置
+ApplicationIntent=ReadOnly;`},
+{type:"warn",text:"只读路由<strong>不是读写分离、不是负载均衡</strong>，仅仅是只读高可用，需要特别的连接设置（ApplicationIntent=ReadOnly）才生效。"}]},
+{id:"m3-9",title:"自动种子设定",icon:"🌱",page:"P47",desc:"SQL Server 2016 引入的副本初始化新功能，免去手动备份还原。",details:[
+{type:"diagram",title:"自动种子设定流程",page:"P47",svg:"autoSeeding"},
+{type:"info",text:"2012/2014 中初始化次要副本的唯一方法是备份、复制和还原；2016 引入<strong>自动种子设定</strong>，通过日志流传输（VDI）将备份流式传输到每个次要副本。"},
+{type:"code",title:"自动种子 T-SQL",code:`-- 次要副本（或所有副本）允许自动创建数据库
+ALTER AVAILABILITY GROUP [AG_Name] GRANT CREATE ANY DATABASE;
+
+-- 主副本查询各副本种子模式，并生成改为自动的语句
+select name,replica_server_name,seeding_mode
+,'ALTER AVAILABILITY GROUP ['+name+'] MODIFY REPLICA ON '
+ +replica_server_name+' WITH (SEEDING_MODE = AUTOMATIC)'
+from sys.availability_replicas ar
+inner join sys.availability_groups ag on ar.group_id=ag.group_id;`},
+{type:"code",title:"传统初始化（备份/还原方式，对比）",code:`BACKUP DATABASE [NewDbName] TO DISK='NewDbName.BAK';
+GO
+BACKUP LOG [NewDbName] TO DISK='NewDbName_log.TRN';
+GO
+ALTER AVAILABILITY GROUP [AG_Name] ADD DATABASE [NewDbName];
+GO`}]}
+]},
+{id:"m4",title:"模块四 · FCI 故障转移集群实战",icon:"🔄",mod:4,page:"P49-152",desc:"SQL Server 2019 故障转移集群完整搭建流程，8 大步骤。",children:[
+{id:"m4-1",title:"步骤1：环境准备",icon:"🖥️",page:"P49-58",desc:"4 台 Windows 虚机，双网卡规划。",details:[
+{type:"list",items:["<strong>4 台 Windows 虚机</strong>：3 台集群节点（.198/.197/.196）+ 1 台域服务器（.195，也是共享存储服务器）","<strong>双网卡</strong>：NAT 业务网络 192.168.89.198~195；仅主机 vmnet1 心跳网络 10.10.10.198~195","编辑虚机 .vmx 文件添加共享磁盘配置，使多台虚机可同时访问同一虚拟磁盘"]},
+{type:"tip",text:"双网卡确保心跳检测不受业务流量影响，是集群稳定运行的关键。"}]},
+{id:"m4-2",title:"步骤2：安装 SSMS",icon:"🛠️",page:"P59-61",desc:"SQL Server Management Studio 图形化管理工具。",details:[
+{type:"warn",text:"SSMS 16.x 操作 AlwaysOn 有 bug（副本一直 restore 中），<strong>务必使用 SSMS 18.x 及以上版本</strong>。"}]},
+{id:"m4-3",title:"步骤3：配置共享存储 iSCSI",icon:"💿",page:"P62-89",desc:"FCI 依赖共享存储，在域控服务器上创建 iSCSI 目标和虚拟磁盘。",details:[
+{type:"steps",steps:[
+{t:"编辑 .vmx 共享磁盘（P62）",p:"编辑虚机文件 xxx.vmx 添加共享磁盘；规划 192.168.89.198~195，其中 195 是域名服务器"},
+{t:"第四台机配置共享存储（P63）",p:"在 .195 安装 iSCSI 目标服务器"},
+{t:"创建四块虚拟磁盘（P67-81）",p:"依次创建 data01、data02、data03、data04 四个 iSCSI 虚拟磁盘"},
+{t:"第一台机连接 iSCSI（P83）",p:"198 连接到 iSCSI 目标，联机、初始化、格式化磁盘"},
+{t:"刷新验证（P86）",p:"在 iSCSI 目标服务器刷新，可看到 198 已连入"},
+{t:"第二、三台机连接（P87-88）",p:"197、196 连接 iSCSI 池，后续与 198 相同并验证"}]},
+{type:"warn",text:"共享磁盘同一时刻只能在一个节点联机，由集群服务管理所有权。"}]},
+{id:"m4-4",title:"步骤4：配置域环境",icon:"🏛️",page:"P90-104",desc:"搭建域控并将三台节点加入域。",details:[
+{type:"steps",steps:[
+{t:".195 搭建域控（P90-96）",p:"安装 AD DS 并提升为域控制器，设置目录服务还原密码 p@ssw0rd"},
+{t:"节点 DNS 指向域控（P104）",p:"198/197/196 添加域服务器 IP 为 DNS，方便匹配"},
+{t:"三台节点加入域（P104）",p:"198、197、196 三台机加入 195 域"}]}]},
+{id:"m4-5",title:"步骤5：安装故障转移集群",icon:"🔗",page:"P105-122",desc:"安装 Windows 故障转移集群功能并创建集群。",details:[
+{type:"steps",steps:[
+{t:"调整网络优先顺序（P105）",p:"198/197/196 修改网络绑定优先顺序，业务网卡优先"},
+{t:"禁用 private 网卡（P106）",p:"心跳用 private 网络在集群中禁掉"},
+{t:"安装集群功能（P108-110）",p:"198、197 分别执行安装故障转移集群，安装完成即可"},
+{t:"域账户登录（P111-113）",p:"快照恢复后从这里开始；用域账户按格式登录"},
+{t:"验证配置（P114-118）",p:"做完测试后手动联机磁盘；配置方式仅点击看看不保存"},
+{t:"创建集群（P119-121）",p:"创建集群，设置集群名称和 IP"},
+{t:"测试 IP 漂移（P122）",p:"重启 192.168.89.198 后，可看到 IP 漂移到 197 这台机"}]},
+{type:"tip",text:"快照恢复后从「域账户登录」步骤开始即可，前面的基础配置无需重做。"}]},
+{id:"m4-6",title:"步骤6：安装 SQL Server 集群",icon:"🐬",page:"P123-146",desc:"在集群上安装 SQL Server 故障转移实例。",details:[
+{type:"steps",steps:[
+{t:"域控添加 DNS（P123-124）",p:"域名服务器 195 添加 SQL Server 集群解析"},
+{t:"添加节点权限（P125）",p:"198~196 添加域账户到本地管理员组"},
+{t:"主节点安装（P126-139）",p:"198 选择「新的 SQL Server 故障转移集群安装」"},
+{t:"添加节点（P140-146）",p:"197 运行 AddNode 加入集群"}]},
+{type:"code",title:"添加节点命令（P141）",code:`Setup /SkipRules=Cluster_VerifyForErrors /Action=AddNode`}]},
+{id:"m4-7",title:"步骤7：集群测试",icon:"✅",page:"P147-152",desc:"验证故障转移是否正常。",details:[
+{type:"steps",steps:[
+{t:"挂起主节点（P147）",p:"手动将 198 挂起，观察 197 是否正常切换（正常挂起、切换正常）"},
+{t:"验证磁盘切换（P148）",p:"可看到磁盘都切换到 s2w（197），切换正常"},
+{t:"恢复主节点（P149-152）",p:"手动将 198 起来，服务和磁盘都正常切换回 s1w 即 198 这台机"}]},
+{type:"good",text:"通过标准：IP 漂移正常 + 磁盘所有权切换正常 + SQL 服务在新节点正常启动。"}]}
+]},
+{id:"m5",title:"模块五 · AlwaysOn 高可用实战",icon:"⭐",mod:5,page:"P153-230",desc:"SQL Server 2019 AlwaysOn 生产环境完整搭建，8 大步骤。",children:[
+{id:"m5-1",title:"步骤1：环境准备与防火墙",icon:"🖥️",page:"P48,P153-154",desc:"4 台虚机双网卡规划，并预先配置 Windows Defender 防火墙。",details:[
+{type:"list",items:["业务网络：192.168.89.202~205；心跳网络：10.10.10.202~205","节点 .202/.203/.204，域控 .205，账号 Administrator/p@ssw0rd"]},
+{type:"steps",title:"Windows Defender 防火墙配置（P48）",steps:[
+{t:"打开高级设置",p:"控制面板 → Windows Defender 防火墙 → 左侧「高级设置」"},
+{t:"查看防火墙属性",p:"在「高级安全 Windows Defender 防火墙」控制台点击「Windows Defender 防火墙属性」，可管理入站/出站/连接安全规则"},
+{t:"启用域配置文件",p:"在「域配置文件」页将防火墙状态设为「启用(推荐)」，入站连接「阻止(默认值)」，出站连接「允许(默认值)」"}]}]},
+{id:"m5-2",title:"步骤2：配置域环境",icon:"🏛️",page:"P155-170",desc:"205 搭建域控，202/203/204 加入域。",details:[
+{type:"steps",steps:[
+{t:".205 搭建域控（P155-161）",p:"安装 AD DS 并提升为域控制器，目录还原密码 p@ssw0rd"},
+{t:"节点 DNS 指向域控（P170）",p:"202/203/204 添加域服务器 IP 为 DNS"},
+{t:"三台节点加入域（P170）",p:"202、203、204 三台机加入 205 域"}]}]},
+{id:"m5-3",title:"步骤3：安装故障转移集群",icon:"🔗",page:"P171-189",desc:"AlwaysOn 依赖 WSFC，但不需要共享存储，使用文件共享见证。",details:[
+{type:"steps",steps:[
+{t:"安装集群功能（P172-174）",p:"202、203 分别执行安装故障转移集群，安装完成即可"},
+{t:"DNS 解析（P180）",p:"域服务器配置集群名称解析"},
+{t:"创建 sqladmin 用户（P181-182）",p:"域名服务 205 添加 sqladmin 域账户，用于 SQL 服务和集群管理"},
+{t:"加入本地管理员（P183）",p:"服务器 202~204 添加该域账户"},
+{t:"配置仲裁盘（P184-186）",p:"仲裁盘部署到域 205，创建共享文件夹；202 或 203 任意集群机配置添加都可"},
+{t:"隐藏共享（P189）",p:"205 共享设置隐藏（共享名加 $），防止误删除"},
+{t:"创建集群（P186-188）",p:"创建集群并添加所有节点"}]},
+{type:"warn",text:"AlwaysOn 用<strong>文件共享见证（File Share Witness）</strong>做仲裁，<strong>不需要 FCI 那样的共享磁盘</strong>。"}]},
+{id:"m5-4",title:"步骤4：安装 SQL Server",icon:"🐬",page:"P190-193",desc:"202 和 203 分别安装独立 SQL Server 实例（非集群实例）。",details:[
+{type:"info",text:"与 FCI 不同，AlwaysOn 每个节点安装独立实例，数据通过日志同步在副本间复制。使用 sqladmin 域账户作为服务账户。"}]},
+{id:"m5-5",title:"步骤5：安装 AlwaysOn 可用性组",icon:"⭐",page:"P194-209",desc:"启用 HADR、创建可用性组和侦听器。",details:[
+{type:"steps",steps:[
+{t:"启用 HADR（P195-196）",p:"SQL Server 配置管理器中启用 AlwaysOn 可用性组，hadr=true 代表高可用启用"},
+{t:"完整备份数据库（P200）",p:"<strong>创建高可用组前必须先备份，不然不给过</strong>"},
+{t:"创建共享文件夹（P204）",p:"在域服务器创建共享文件夹，可被 204、205 访问，用于副本初始化"},
+{t:"创建可用性组（P201-207）",p:"SSMS 向导选择数据库、副本、端点、侦听器、备份首选项"},
+{t:"配置侦听器",p:"创建 Listener，客户端通过侦听器名连接"},
+{t:"验证侦听器注册（P208）",p:"205 域服务器可看到注册了这个侦听"}]},
+{type:"code",title:"检查 HADR",code:`SELECT SERVERPROPERTY('IsHadrEnabled') AS HadrEnabled; -- 1=已启用`},
+{type:"warn",text:"<strong>使用 SSMS 18.x 操作</strong>：16.x 操作 AlwaysOn 有 bug，副本会一直处于 restore 中。"}]},
+{id:"m5-6",title:"步骤6：添加节点",icon:"➕",page:"P210",desc:"将新节点加入可用性组的四步流程。",details:[
+{type:"steps",steps:[
+{t:"加域",p:"新机器先加入域"},
+{t:"加入故障转移集群",p:"将新节点添加到 WSFC"},
+{t:"安装 SQL Server",p:"安装独立实例，启用 HADR"},
+{t:"加入 AlwaysOn",p:"在可用性组中添加副本，完成数据同步"}]},
+{type:"tip",text:"口诀：<strong>加域 → 入集群 → 装 SQL → 入 AG</strong>。"}]},
+{id:"m5-7",title:"步骤7：配置读写分离",icon:"🔀",page:"P211-215",desc:"通过只读路由将读请求分发到辅助副本。",details:[
+{type:"diagram",title:"AlwaysOn 只读路由架构",page:"P46,P211",svg:"readOnlyRouting"},
+{type:"code",title:"只读连接字符串",code:`Server=侦听器名;Database=库名;Integrated Security=SSPI;
+ApplicationIntent=ReadOnly;`},
+{type:"list",items:["辅助副本设置为「允许只读连接」（ALLOW_CONNECTIONS = READ_ONLY）","配置 READ_ONLY_ROUTING_URL 与 READ_ONLY_ROUTING_LIST 只读路由列表","客户端连接串加 ApplicationIntent=ReadOnly，侦听器自动路由","同步模式读数据最新；异步模式可能有轻微延迟"]}]},
+{id:"m5-8",title:"步骤8：高可用测试",icon:"✅",page:"P216-230",desc:"验证故障转移、数据同步和读写分离。",details:[
+{type:"list",items:["<strong>手动故障转移</strong>：主副本切换到辅助节点，验证服务不中断","<strong>数据同步</strong>：主库写入数据，检查辅助副本同步","<strong>只读路由</strong>：ReadOnly 连接确认路由到辅助副本","<strong>侦听器连通</strong>：故障转移后通过侦听器仍可连接","<strong>自动故障转移</strong>（同步模式）：强制关闭主节点，观察自动切换"]},
+{type:"good",text:"通过标准：故障转移后侦听器仍可连接 + 数据零丢失（同步模式）+ 读请求自动路由。"}]}
+]}
+];
+</script>
+<script>
+const treeEl=document.getElementById('tree'),ctEl=document.getElementById('ct'),si=document.getElementById('si'),sc=document.getElementById('sc');
+function renderTree(nodes,parent){
+nodes.forEach(n=>{
+const ne=document.createElement('div');ne.className='tree-node m'+(n.mod||'');ne.dataset.id=n.id;
+const lb=document.createElement('div');lb.className='tl';
+const hc=n.children&&n.children.length;
+lb.innerHTML='<span class="tg '+(hc?'':'leaf')+'">▶</span><span class="ic">'+(n.icon||'📄')+'</span><span class="tx">'+n.title+'</span>'+(n.page?'<span class="pg">'+n.page+'</span>':'');
+lb.onclick=function(e){e.stopPropagation();if(hc){const ch=ne.querySelector(':scope > .tc');const tg=lb.querySelector('.tg');ch.classList.toggle('open');tg.classList.toggle('exp');}show(n);document.querySelectorAll('.tl.active').forEach(function(x){x.classList.remove('active');});lb.classList.add('active');};
+ne.appendChild(lb);
+if(hc){const ce=document.createElement('div');ce.className='tc';renderTree(n.children,ce);ne.appendChild(ce);}
+parent.appendChild(ne);
+});}
+renderTree(knowledge,treeEl);
+treeEl.querySelectorAll(':scope > .tree-node > .tc').forEach(function(e){e.classList.add('open');e.previousElementSibling.querySelector('.tg').classList.add('exp');});
+function findBC(id,nodes,path){
+nodes=knowledge;path=[];
+function walk(ns,p){for(var i=0;i<ns.length;i++){var n=ns[i];var np=p.concat(n);if(n.id===id)return np;if(n.children){var r=walk(n.children,np);if(r)return r;}}return null;}
+return walk(knowledge,[]);}
+function show(n){
+const bc=findBC(n.id)||[];
+let h='<div class="ch"><h2>'+(n.icon||'📄')+' '+n.title+' '+(n.page?'<span class="tag tp">'+n.page+'</span>':'')+'</h2><div class="bc">'+bc.map(function(c){return '<span onclick="jump(\''+c.id+'\')">'+c.title+'</span>';}).join(' / ')+'</div></div>';
+if(n.desc)h+='<div class="card"><p style="font-size:14px;color:#475569">'+n.desc+'</p></div>';
+if(n.details)n.details.forEach(function(d){h+=renderD(d);});
+if(!n.desc&&!n.details)h+='<div class="card"><p>点击左侧子节点查看。</p></div>';
+ctEl.innerHTML=h;ctEl.scrollTop=0;}
+function renderD(d){
+switch(d.type){
+case 'list':return '<div class="card"><h3>'+(d.title||'')+'</h3><ul>'+d.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div>';
+case 'grid':return '<div class="card"><h3>'+(d.title||'')+'</h3><div class="g2">'+d.cols.map(function(c){return '<div class="mc"><h4>'+c.h+'</h4><p>'+c.p+'</p></div>';}).join('')+'</div></div>';
+case 'code':return '<div class="card"><h3>'+(d.title||'')+'</h3><pre><code>'+d.code+'</code></pre></div>';
+case 'warn':return '<div class="warn">⚠️ <strong>注意：</strong>'+d.text+'</div>';
+case 'tip':return '<div class="good">💡 <strong>技巧：</strong>'+d.text+'</div>';
+case 'info':return '<div class="info">ℹ️ '+d.text+'</div>';
+case 'steps':return '<div class="card"><h3>'+(d.title||'')+'</h3><div class="steps">'+d.steps.map(function(s){return '<div class="st"><strong>'+s.t+'</strong><p>'+s.p+'</p></div>';}).join('')+'</div></div>';
+case 'table':{var th='<table class="hk"><thead><tr>';d.head.forEach(function(c){th+='<th>'+c+'</th>';});th+='</tr></thead><tbody>';d.rows.forEach(function(r){th+='<tr>';r.forEach(function(c){th+='<td>'+c+'</td>';});th+='</tr>';});th+='</tbody></table>';return '<div class="card"><h3>'+(d.title||'')+'</h3>'+th+'</div>';}
+case 'diagram':{return '<div class="dia-wrap"><div class="dia-title">📊 '+d.title+' '+(d.page?'<span class="pg-tag">'+d.page+'</span>':'')+'</div>'+(SVG[d.svg]||'')+'</div>';}
+default:return'';}}
+window.jump=function(id){
+const ne=document.querySelector('.tree-node[data-id="'+id+'"]');if(!ne)return;
+let p=ne.parentElement;while(p&&p.classList.contains('tc')){p.classList.add('open');const t=p.previousElementSibling&&p.previousElementSibling.querySelector('.tg');if(t)t.classList.add('exp');p=p.parentElement;}
+ne.querySelector(':scope > .tl').click();ne.scrollIntoView({behavior:'smooth',block:'center'});};
+let tm;
+si.oninput=function(){clearTimeout(tm);tm=setTimeout(search,180);};
+sc.onclick=function(){si.value='';sc.style.display='none';clrSearch();};
+function search(){
+const q=si.value.trim().toLowerCase();sc.style.display=q?'block':'none';
+if(!q){clrSearch();return;}
+document.querySelectorAll('.tl.match').forEach(function(e){e.classList.remove('match');});
+let cnt=0,first=null;
+function walk(nodes){nodes.forEach(function(n){
+const ne=document.querySelector('.tree-node[data-id="'+n.id+'"]');if(!ne)return;
+const lb=ne.querySelector(':scope > .tl');
+const t=(n.title+' '+(n.desc||'')+' '+(n.page||'')).toLowerCase();
+if(t.indexOf(q)>=0){cnt++;lb.classList.add('match');if(!first)first=n;let p=ne.parentElement;while(p&&p.classList.contains('tc')){p.classList.add('open');const tg=p.previousElementSibling&&p.previousElementSibling.querySelector('.tg');if(tg)tg.classList.add('exp');p=p.parentElement;}}
+if(n.children)walk(n.children);});}
+walk(knowledge);
+if(first){show(first);document.querySelectorAll('.tl.active').forEach(function(e){e.classList.remove('active');});const l=document.querySelector('.tree-node[data-id="'+first.id+'"] > .tl');if(l)l.classList.add('active');}
+document.getElementById('st').textContent='匹配 '+cnt+' 个知识点';}
+function clrSearch(){document.querySelectorAll('.tl.match').forEach(function(e){e.classList.remove('match');});document.getElementById('st').textContent='5大模块 · 35个知识点 · 12张架构图';}
+function exAll(){document.querySelectorAll('.tc').forEach(function(e){e.classList.add('open');});document.querySelectorAll('.tg').forEach(function(e){if(!e.classList.contains('leaf'))e.classList.add('exp');});}
+function colAll(){document.querySelectorAll('.tc').forEach(function(e){e.classList.remove('open');});document.querySelectorAll('.tg').forEach(function(e){e.classList.remove('exp');});treeEl.querySelectorAll(':scope > .tree-node > .tc').forEach(function(e){e.classList.add('open');});treeEl.querySelectorAll(':scope > .tree-node > .tl > .tg').forEach(function(e){e.classList.add('exp');});}
+</script>
+</body>
+</html>
